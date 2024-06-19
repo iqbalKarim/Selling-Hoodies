@@ -1,6 +1,7 @@
 import urllib.request
 import os
 import pandas as pd
+import torchvision.datasets
 from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -49,17 +50,35 @@ def plot_transformed_images(transform):
             fig.suptitle(f"Class: {image_path}", fontsize=16)
     plt.show()
 
+# def load_data(download=False, batch_size=64, MNIST=False):
+#     df = pd.read_csv("./omniart_v3_datadump.csv")
+#     print(df.columns.values.tolist())
+#     # print(df["artwork_type"].unique().tolist())
+#     # print(df["general_type"].unique().tolist())
+#     print(df.shape[0])
+#     print(df[df["artwork_type"] == "sculpture"].shape[0])
+# general_type
+# artwork_type
 
-def load_data(download=False, batch_size=64):
+def load_data(download=False, batch_size=64, MNIST=False):
     print("Loading data.\n")
+
+    if MNIST:
+        data = torchvision.datasets.MNIST("./data/mnist/", train=True, transform=transforms.ToTensor(), download=True)
+        print(data)
+        return DataLoader(data, batch_size=batch_size, shuffle=True, drop_last=False)
 
     data_path = "./data/dataset/train/"
 
     if download:
 
         count = 0
-        df = pd.read_csv("./data/omniart_v3_datadump.csv")
+        df = pd.read_csv("./omniart_v3_datadump.csv")
+        # only get sculptures
+        df = df[df["artwork_type"] == "sculpture"]
+
         image_urls = df["image_url"]
+        # print(image_urls)
         print("Data dump initialized.\n")
 
         if not os.path.exists(data_path):
@@ -78,14 +97,18 @@ def load_data(download=False, batch_size=64):
         #####
 
         print('Downloading images.')
-        while count < 50000:
+        # while count < 50000:
+        for url in image_urls:
+            # print(url)
             try:
                 path_to_file = data_path + str(count) + ".jpg"
-                urllib.request.urlretrieve(image_urls[count], path_to_file)
+                # urllib.request.urlretrieve(image_urls[count], path_to_file)
+                urllib.request.urlretrieve(url, path_to_file)
                 if not is_valid_image_pillow(path_to_file):
                     os.remove(path_to_file)
             except Exception as e:
-                print('Error on ' + str(count) + ' with URL: ' + image_urls[count] + '\n\t' + repr(e))
+                # print('Error on ' + str(count) + ' with URL: ' + image_urls[count] + '\n\t' + repr(e))
+                print('Error on ' + str(count) + ' with URL: ' + url + '\n\t' + repr(e))
             count += 1
         print("Images downloaded and verified.\n")
 

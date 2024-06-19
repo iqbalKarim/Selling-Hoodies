@@ -11,36 +11,36 @@ class Generator(nn.Module):
             nn.ConvTranspose2d(64, 128, kernel_size=6, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            # 64 x 1 x 1 ---> 256 x 4 x 4
+            # 64 x 1 x 1 ---> 128 x 4 x 4
 
             nn.ConvTranspose2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            # 256 x 4 x 4 ---> 128 x 8 x 8
+            # 128 x 4 x 4 ---> 256 x 8 x 8
 
             nn.ConvTranspose2d(256, 512, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            # 128 x 8 x 8 ---> 64 x 16 x 16
+            # 256 x 8 x 8 ---> 512 x 16 x 16
 
-            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.ConvTranspose2d(512, 256, kernel_size=6, stride=4, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            # 128 x 8 x 8 ---> 64 x 16 x 16
+            # 512 x 16 x 16 ---> 256 x 64 x 64
 
             nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            # 128 x 8 x 8 ---> 64 x 16 x 16
+            # 256 x 64 x 64 ---> 128 x 128 x 128
 
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            # 128 x 8 x 8 ---> 64 x 16 x 16
+            # 128 x 128 x 128 ---> 64 x 256 x 256
 
             nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1, bias=False),
             nn.Tanh()
-            # 64 x 16 x 16 ---> 3 x 32 x 32
+            # 64 x 256 x 256 ---> 3 x 512 x 512
         )
 
     def forward(self, z):
