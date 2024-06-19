@@ -23,18 +23,23 @@ if __name__ == '__main__':
     #     wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
     #     wr.writerow(image_urls)
 
-    batch_size = 64
-    dataloader = load_data(download=False, batch_size=batch_size, MNIST=False)
+    # print(torch.cuda.is_available())
+    # print('\ndevice name:\n', torch.cuda.get_device_name())
+    # print('\ncapability:\n', torch.cuda.get_device_capability())
+
     # train_WGAN(dataloader)
+
+    batch_size = 4
+    dataloader = load_data(download=False, batch_size=batch_size, MNIST=False)
 
     D = Discriminator()
     G = Generator()
-    train_wgan(D, G, dataloader, 64)
+    train_wgan(D, G, dataloader, 64, batch_size=batch_size ,device='cuda')
 
     G, D = G.eval(), D.eval()
 
     with torch.no_grad():
-        noise = torch.rand(batch_size, 64, device="cpu")
+        noise = torch.rand(batch_size, 64, 1, 1, device="cuda")
         fake_samples_w = G(noise)
         generated = make_grid(fake_samples_w, nrow=10, padding=2, normalize=False,
                               value_range=None, scale_each=False, pad_value=0)

@@ -68,7 +68,8 @@ def load_data(download=False, batch_size=64, MNIST=False):
         print(data)
         return DataLoader(data, batch_size=batch_size, shuffle=True, drop_last=False)
 
-    data_path = "./data/dataset/train/"
+    # data_path = "./data/dataset/train/"
+    data_path = "/vol/bitbucket/ik323/fyp/dataset/train/"
 
     if download:
 
@@ -120,7 +121,7 @@ def load_data(download=False, batch_size=64, MNIST=False):
     ])
     # plot_transformed_images(data_transform)
 
-    train_data = datasets.ImageFolder(root="./data/dataset",
+    train_data = datasets.ImageFolder(root="/vol/bitbucket/ik323/fyp/dataset",
                                       transform=data_transform)
 
     print(f"\nTraining dataset: \n{train_data}")
