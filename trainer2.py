@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageFile
 
-# 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
-
 def train_wgan(D, G, loader, latent_d, batch_size, epochs=20, d_updates=1, device="cpu"):
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
