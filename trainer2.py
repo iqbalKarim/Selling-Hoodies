@@ -5,8 +5,13 @@ from torch.cuda.amp import GradScaler
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image, ImageFile
+
+# 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
 
 def train_wgan(D, G, loader, latent_d, batch_size, epochs=20, d_updates=1, device="cpu"):
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+
     G_losses = []
     D_losses = []
     scaler = GradScaler()
@@ -101,12 +106,11 @@ def train_wgan(D, G, loader, latent_d, batch_size, epochs=20, d_updates=1, devic
         with torch.no_grad():
             noise = torch.rand(batch_size, 64, 1, 1, device="cuda")
             generated = G(noise)
-            generated = make_grid(generated, nrow=2, padding=2, normalize=False,
-                                  value_range=None, scale_each=False, pad_value=0)
+            generated = make_grid(generated, nrow=2)
             generated = generated.cpu()
             npimg = generated.numpy()
+            save_image(generated, f'./results/{epoch}.png')
             plt.figure(figsize=(15, 15))
             plt.imshow(np.transpose(npimg, (1, 2, 0)))
-            save_image(generated, f'./results/{epoch}.png')
 
     return G_losses, D_losses

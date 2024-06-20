@@ -60,7 +60,7 @@ def plot_transformed_images(transform):
 # general_type
 # artwork_type
 
-def load_data(download=False, batch_size=64, MNIST=False):
+def load_data(download=False, batch_size=64, MNIST=False, show_samples=False, size=(512,512)):
     print("Loading data.\n")
 
     if MNIST:
@@ -114,8 +114,8 @@ def load_data(download=False, batch_size=64, MNIST=False):
         print("Images downloaded and verified.\n")
 
     data_transform = transforms.Compose([
-        # Resize the images to 512x512
-        transforms.Resize(size=(512, 512)),
+        # Resize the images to 512x512 (default) or size tuple
+        transforms.Resize(size=size),
         # Turn the image into a torch.Tensor
         transforms.ToTensor()  # this also converts all pixel values from 0 to 255 to be between 0.0 and 1.0
     ])
@@ -126,13 +126,17 @@ def load_data(download=False, batch_size=64, MNIST=False):
 
     print(f"\nTraining dataset: \n{train_data}")
 
-    # img = train_data[0][0]                #[color_channels, height, width]
-    # img_permute = img.permute(1, 2, 0)    #[height, width, color_channels]
-    # plt.figure(figsize=(10, 7))
-    # plt.imshow(img_permute)
-    # plt.axis("off")
-    # plt.title('Image: 0', fontsize=14)
-    # plt.show()
+    if show_samples:
+        # images = train_data[0][0]
+        for i in range(5):
+            img = train_data[i][0]                  #[color_channels, height, width]
+            img_permute = img.permute(1, 2, 0)      #[height, width, color_channels]
+            plt.figure(figsize=(10, 7))
+            plt.imshow(img_permute)
+            plt.axis("off")
+            plt.title(f'Image: {i}', fontsize=14)
+            plt.show()
+
     train_dataloader = DataLoader(dataset=train_data,
                                   batch_size=batch_size,  # how many samples per batch?
                                   num_workers=1,  # how many subprocesses to use for data loading? (higher = more)
