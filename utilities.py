@@ -2,8 +2,6 @@ import torch
 import matplotlib.pyplot as plt
 from torchvision.utils import save_image, make_grid
 
-# JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
-#             119832  gpgpuALL interact    ik323  R       1:22      1 cloud-vm-47-218
 
 def generate_samples(generator, output_name, show_seperate_plots = False, num_samples=10, latent_d=64):
     with torch.no_grad():
@@ -23,3 +21,27 @@ def generate_samples(generator, output_name, show_seperate_plots = False, num_sa
                 plt.show()
 
         return samples
+
+
+def save_graph(y_D, y_G, filepath="./results"):
+    # x = np.linspace(0, 10, 100)
+    fig, ax = plt.subplots()
+    
+    ax.plot(y_D, linewidth=2.0, color='green', label='Discriminator Loss')
+    ax.plot(y_G, linewidth=2.0, color='red', label='Generator Loss')
+    ax.legend()
+    # ax.set(xlim=(0, 50))
+    ax.axis('auto')
+    # plt.show()
+    plt.savefig(filepath+"/training_graph.png")
+    plt.close()
+
+
+def generate_fake_images_from_generator(generator, latent_dim, batch_size,
+                                        file_path='./results/output.jpg', device='cpu'):
+    with torch.no_grad():
+        noise = torch.rand(batch_size, latent_dim, 1, 1, device=device)
+        generated = generator(noise)
+        generated = make_grid(generated, nrow=8)
+        generated = generated.cpu()
+        save_image(generated, file_path)
