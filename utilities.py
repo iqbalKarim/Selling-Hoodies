@@ -3,15 +3,16 @@ import matplotlib.pyplot as plt
 from torchvision.utils import save_image, make_grid
 
 
-def generate_samples(generator, output_name, show_seperate_plots = False, num_samples=10, latent_d=64):
+def generate_samples(generator, output_path='results/output.jpg',
+                     show_separate_plots=False, num_samples=10, latent_d=64):
     with torch.no_grad():
         noise = torch.randn(num_samples, latent_d, 1, 1)
         samples = generator(noise)
 
         grid = make_grid(samples, 5)
-        save_image(grid, f'results/{output_name}.jpg')
+        save_image(grid, output_path)
 
-        if show_seperate_plots:
+        if show_separate_plots:
             for img in samples:
                 img_permute = img.permute(1, 2, 0)    #[height, width, color_channels]
                 plt.figure(figsize=(10, 7))

@@ -64,7 +64,8 @@ def gradient_penalty_l2_norm(gradient):
 def train_WGAN(generator, discriminator, dataloader, batch_size,
                g_lr=0.0001, d_lr=0.0001, learning_betas=(0.0, 0.9),
                c_lambda=10, display_step=500,
-               d_updates=1, n_epochs=20, latent_dim=64, device='cpu'):
+               d_updates=1, n_epochs=20, latent_dim=64, device='cpu',
+               output_path='./results'):
 
     generator = generator.apply(weights_init)
     discriminator = discriminator.apply(weights_init)
@@ -140,7 +141,7 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
             generator_losses += [gen_loss.item()]
 
         generate_fake_images_from_generator(generator, latent_dim, batch_size,
-                                            file_path=f"./results/{epoch}.png", device="cuda")
+                                            file_path=f"{output_path}/{epoch}.png", device="cuda")
 
         generator_mean_loss_display_step = sum(generator_losses[-display_step:]) / display_step
         critic_mean_loss_display_step = sum(critic_losses_across_critic_repeats[-display_step:]) / display_step
@@ -167,7 +168,7 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
             label="Critic Loss",
         )
         plt.legend()
-        plt.savefig("./results/training_graph.jpg")
+        plt.savefig(f"{output_path}/training_graph.jpg")
         plt.close()
 
     return discriminator_losses, generator_losses
