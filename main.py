@@ -33,4 +33,4 @@ if __name__ == '__main__':
     # D, G = Critic_Inps(), Generator_Insp()
     #
 
-    W_GAN_MNIST(D=Critic_Inps(), G=Generator_Insp())
+    W_GAN_MNIST(D=Critic_Inps(), G=Generator_Insp(), z_dim=100)

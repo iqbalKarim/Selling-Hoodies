@@ -7,8 +7,7 @@ import os
 from classes import Generator256, Discriminator256
 from pytorchsummary import summary
 
-def W_GAN_MNIST(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, complicated=False, G=None, D=None):
-    z_dim = 64
+def W_GAN_MNIST(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, z_dim=64, complicated=False, G=None, D=None):
     dataloader = load_data(batch_size=batch_size, MNIST=True)
     beta_1 = 0.5
     beta_2 = 0.999
