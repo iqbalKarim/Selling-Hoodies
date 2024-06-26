@@ -155,3 +155,63 @@ class Generator_Comp(nn.Module):
 
     def forward(self, noise):
         return self.g(noise)
+
+
+class Generator_Insp(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Filters [1024, 512, 256]
+        # Input_dim = 100
+        # Output_dim = C (number of channels)
+        self.g = nn.Sequential(
+            # Z latent vector 100
+            nn.ConvTranspose2d(in_channels=100, out_channels=1024, kernel_size=4, stride=1, padding=0),
+            nn.BatchNorm2d(num_features=1024),
+            nn.ReLU(True),
+
+            # State (1024x4x4)
+            nn.ConvTranspose2d(in_channels=1024, out_channels=512, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(num_features=512),
+            nn.ReLU(True),
+
+            # State (512x8x8)
+            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(num_features=256),
+            nn.ReLU(True),
+
+            # State (256x16x16)
+            nn.ConvTranspose2d(in_channels=256, out_channels=1, kernel_size=2, stride=2, padding=2),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        return self.g(x)
+
+
+class Critic_Inps(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Filters [256, 512, 1024]
+        # Input_dim = channels (Cx64x64)
+        # Output_dim = 1
+        self.c = nn.Sequential(
+            # Image (Cx28x28)
+            nn.Conv2d(in_channels=1, out_channels=256, kernel_size=2, stride=2, padding=2),
+            nn.InstanceNorm2d(256, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # State (256x16x16)
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2, padding=1),
+            nn.InstanceNorm2d(512, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # State (512x8x8)
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=4, stride=2, padding=1),
+            nn.InstanceNorm2d(1024, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(in_channels=1024, out_channels=1, kernel_size=4, stride=1, padding=0)
+        )
+
+    def forward(self, x):
+        return self.c(x)

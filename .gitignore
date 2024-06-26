@@ -3,3 +3,5 @@ venv/
 __pycache__/
 results/
 data/omniart_v3_datadump.csv
+data/dataset
+data/mnist

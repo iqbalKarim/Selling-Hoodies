@@ -5,20 +5,22 @@ from utilities import generate_samples, save_graph
 from WGAN.MNISTClasses import Critic, Generator, Critic_Comp, Generator_Comp
 import os
 from classes import Generator256, Discriminator256
+from pytorchsummary import summary
 
-def W_GAN_MNIST(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, complicated=False):
+def W_GAN_MNIST(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, complicated=False, G=None, D=None):
     z_dim = 64
     dataloader = load_data(batch_size=batch_size, MNIST=True)
-    beta_1 = 0.0
+    beta_1 = 0.5
     beta_2 = 0.999
     n_epochs = 100
 
-    if complicated:
-        D = Critic_Comp()
-        G = Generator_Comp()
-    else:
-        D = Critic()
-        G = Generator(z_dim)
+    if not D and not G:
+        if complicated:
+            D = Critic_Comp()
+            G = Generator_Comp()
+        else:
+            D = Critic()
+            G = Generator(z_dim)
 
     data_path = f'./results/b_{batch_size}_glr_{g_lr}_dlr_{d_lr}'
     if not os.path.exists(data_path):

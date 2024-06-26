@@ -1,5 +1,5 @@
 from WGAN.tester import W_GAN_MNIST, W_GAN_SCULPTURES
-from WGAN.MNISTClasses import Critic, Generator, Critic_Comp, Generator_Comp
+from WGAN.MNISTClasses import Critic, Generator, Critic_Comp, Generator_Comp, Generator_Insp, Critic_Inps
 from pytorchsummary import summary
 
 
@@ -29,6 +29,8 @@ if __name__ == '__main__':
     # print('\ncapability:\n', torch.cuda.get_device_capability())
 
     # paramsearch_and_training_MNIST(complicated=True)
-    paramsearch_and_training_sculptures()
+    # paramsearch_and_training_sculptures()
+    # D, G = Critic_Inps(), Generator_Insp()
+    #
 
-
+    W_GAN_MNIST(D=Critic_Inps(), G=Generator_Insp())
