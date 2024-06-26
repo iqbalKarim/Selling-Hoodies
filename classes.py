@@ -95,7 +95,7 @@ class Generator256(nn.Module):
         self.g = nn.Sequential(
             # input: 64 x 1 x 1
 
-            nn.ConvTranspose2d(64, 128, kernel_size=6, stride=2, padding=1, bias=False),
+            nn.ConvTranspose2d(150, 128, kernel_size=6, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
             # 64 x 1 x 1 ---> 128 x 4 x 4
