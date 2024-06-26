@@ -117,6 +117,8 @@ def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_sa
 
     train_data = datasets.ImageFolder(root="/vol/bitbucket/ik323/fyp/dataset",
                                       transform=data_transform)
+    # train_data = datasets.ImageFolder(root="./data/dataset/",
+    #                                   transform=data_transform)
 
     print(f"\nTraining dataset: \n{train_data}")
 

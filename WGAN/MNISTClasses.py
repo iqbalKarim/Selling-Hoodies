@@ -89,74 +89,6 @@ class Generator(nn.Module):
         return self.gen(noise)
 
 
-class Critic_Comp(nn.Module):
-    def __init__(self):
-        super(Critic_Comp, self).__init__()
-
-        self.d = nn.Sequential(
-            # input: 1 x 28 x 28
-            nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # 1 x 28 x 28 ---> 32 x 14 x 14
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # 32 x 14 x 14 ---> 64 x 7 x 7
-            nn.Conv2d(64, 128, kernel_size=5, stride=1, padding=2, bias=False),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # 64 x 7 x 7 ---> 128 x 7 x 7
-            nn.Conv2d(128, 64, kernel_size=6, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # 128 x 7 x 7 ---> 64 x 4 x 4
-            nn.Conv2d(64, 32, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(32),
-            nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # 64 x 4 x 4 ---> 32 x 2 x 2
-            nn.Conv2d(32, 1, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.Sigmoid(),
-            # 32 x 2 x 2 ---> 1 x 1 x 1
-        )
-
-    def forward(self, x):
-        return self.d(x)
-
-
-class Generator_Comp(nn.Module):
-    def __init__(self):
-        super(Generator_Comp, self).__init__()
-        self.g = nn.Sequential(
-            # input: 64 x 1 x 1
-            nn.ConvTranspose2d(64, 128, kernel_size=6, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            # 64 x 1 x 1 ---> 128 x 4 x 4
-            nn.ConvTranspose2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            # 128 x 4 x 4 ---> 256 x 8 x 8
-            nn.ConvTranspose2d(256, 256, kernel_size=5, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            # 256 x 8 x 8 ---> 256 x 10 x 10
-            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            # 256 x 10 x 10 ---> 128 x 20 x 20
-            nn.ConvTranspose2d(128, 64, kernel_size=7, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            # 128 x 20 x 20  ---> 64 x 24 x 24
-            nn.ConvTranspose2d(64, 1, kernel_size=7, stride=1, padding=1, bias=False),
-            nn.Tanh()
-            # 64 x 24 x 24 --> 1 x 28 x 28
-        )
-
-    def forward(self, noise):
-        return self.g(noise)
-
-
 class Generator_Insp(nn.Module):
     def __init__(self):
         super().__init__()
@@ -188,7 +120,7 @@ class Generator_Insp(nn.Module):
         return self.g(x)
 
 
-class Critic_Inps(nn.Module):
+class Critic_Insp(nn.Module):
     def __init__(self):
         super().__init__()
         # Filters [256, 512, 1024]

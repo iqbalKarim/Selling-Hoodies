@@ -1,9 +1,7 @@
 from WGAN.tester import W_GAN_MNIST, W_GAN_SCULPTURES
-from WGAN.MNISTClasses import Critic, Generator, Critic_Comp, Generator_Comp, Generator_Insp, Critic_Inps
-from pytorchsummary import summary
 
 
-def paramsearch_and_training_MNIST(complicated=False):
+def paramsearch_and_training_MNIST():
     # for batch in [128]:
     for batch in [64, 128]:
         for g_lr, d_lr in [(0.0001, 0.0001), (0.0002, 0.0001), (0.0001, 0.0002), (0.0002, 0.0002)]:
@@ -11,7 +9,7 @@ def paramsearch_and_training_MNIST(complicated=False):
                   f"\tBatch Size: {batch} \n"
                   f"\tGen LR: {g_lr}\n"
                   f"\tDisc LR: {d_lr}")
-            W_GAN_MNIST(batch, g_lr, d_lr, complicated=complicated)
+            W_GAN_MNIST(batch, g_lr, d_lr)
 
 def paramsearch_and_training_sculptures():
     for batch in [64]:
@@ -22,6 +20,7 @@ def paramsearch_and_training_sculptures():
                   f"\tDisc LR: {d_lr}")
             W_GAN_SCULPTURES(batch, g_lr, d_lr, z_dim=150)
 
+
 if __name__ == '__main__':
     # model_path = "./models/"
     # print(torch.cuda.is_available())
@@ -30,7 +29,3 @@ if __name__ == '__main__':
 
     # paramsearch_and_training_MNIST(complicated=True)
     paramsearch_and_training_sculptures()
-    # D, G = Critic_Inps(), Generator_Insp()
-    #
-
-    # W_GAN_MNIST(D=Critic_Inps(), G=Generator_Insp(), z_dim=100)

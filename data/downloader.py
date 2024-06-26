@@ -15,14 +15,14 @@ with open('out.txt', 'w') as f:
     print("Loading data.\n", file=f)
 
     # data_path = "./data/dataset/train/"
-    data_path = "/vol/bitbucket/ik323/fyp/dataset/train/"
+    data_path = "/vol/bitbucket/ik323/fyp/dataset/abstract/"
 
     count = 0
     df = pd.read_csv("omniart_v3_datadump.csv")
     # only get sculptures
-    df = df[df["artwork_type"] == "sculpture"]
+    df = df[df["artwork_type"] == "abstract"]
 
-    image_urls = df["image_url"]
+    # image_urls = df["image_url"]
     # print(image_urls)
     print("Data dump initialized.\n", file=f)
 
@@ -43,10 +43,14 @@ with open('out.txt', 'w') as f:
 
     print('Downloading images.', file=f)
     # while count < 50000:
-    for url in image_urls:
+    # for url in image_urls:
+    for ind in df.index:
+        # print(df['id'][ind], df['image_url'][ind])
         # print(url)
+        url = df['image_url'][ind]
+        id = df['id'][ind]
         try:
-            path_to_file = data_path + str(count) + ".jpg"
+            path_to_file = data_path + str(id) + ".jpg"
             # urllib.request.urlretrieve(image_urls[count], path_to_file)
             urllib.request.urlretrieve(url, path_to_file)
             if not is_valid_image_pillow(path_to_file):
