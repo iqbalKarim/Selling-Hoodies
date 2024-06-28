@@ -4,7 +4,8 @@ import pandas as pd
 import torchvision.datasets
 from PIL import Image
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets
+import torchvision.transforms.v2 as transforms
 import matplotlib.pyplot as plt
 from PIL import Image, ImageFile
 
@@ -52,15 +53,19 @@ def plot_transformed_images(transform):
     plt.show()
 
 
-def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_samples=False, size=(512,512)):
+def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_samples=False, size=(512, 512)):
     print("Loading data.\n")
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
     if MNIST:
-        data = torchvision.datasets.MNIST("/vol/bitbucket/ik323/fyp/mnist/", train=True, 
-                                          transform=transforms.ToTensor(), download=True)
+        data_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.RandomHorizontalFlip()
+        ])
+        dataset = torchvision.datasets.MNIST("/vol/bitbucket/ik323/fyp/mnist/", train=True,
+                                             transform=transforms.ToTensor(), download=True)
         # print(len(data))
-        return DataLoader(data, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=6)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=6), dataset
 
     # data_path = "./data/dataset/train/"
     data_path = "/vol/bitbucket/ik323/fyp/dataset/train/"
@@ -111,7 +116,8 @@ def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_sa
         # Resize the images to 512x512 (default) or size tuple
         transforms.Resize(size=size),
         # Turn the image into a torch.Tensor
-        transforms.ToTensor()  # this also converts all pixel values from 0 to 255 to be between 0.0 and 1.0
+        transforms.ToTensor(), # this also converts all pixel values from 0 to 255 to be between 0.0 and 1.0
+        transforms.RandomHorizontalFlip()
     ])
     # plot_transformed_images(data_transform)
 
@@ -138,4 +144,4 @@ def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_sa
                                   num_workers=6,  # how many subprocesses to use for data loading? (higher = more)
                                   shuffle=True)
     print(f"Return training dataloader: \n\t{train_dataloader}")
-    return train_dataloader
+    return train_dataloader, train_data

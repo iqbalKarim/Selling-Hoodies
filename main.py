@@ -8,7 +8,7 @@ def paramsearch_and_training_MNIST():
             print(f"Training for: \n "
                   f"\tBatch Size: {batch} \n"
                   f"\tGen LR: {g_lr}\n"
-                  f"\tDisc LR: {d_lr}")
+                  f"\tDisc LR: {d_lr}") 
             W_GAN_MNIST(batch, g_lr, d_lr)
 
 def paramsearch_and_training_sculptures():
@@ -27,5 +27,5 @@ if __name__ == '__main__':
     # print('\ndevice name:\n', torch.cuda.get_device_name())
     # print('\ncapability:\n', torch.cuda.get_device_capability())
 
-    # paramsearch_and_training_MNIST(complicated=True)
+    # paramsearch_and_training_MNIST()
     paramsearch_and_training_sculptures()
