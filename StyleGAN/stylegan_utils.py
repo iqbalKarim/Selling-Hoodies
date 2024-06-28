@@ -35,3 +35,32 @@ def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
     gradient_norm = gradient.norm(2, dim=1)
     gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
     return gradient_penalty
+
+def save_model(gen, crit, opt_gen, opt_crit, alpha,
+               z_dim, w_dim, in_channels, img_channels,
+               step, identifier='STYLEGAN'):
+    if not os.path.exists(f'models/{identifier}'):
+        os.makedirs(f'models/{identifier}')
+    torch.save({
+        'generator': gen.state_dict(),
+        'discriminator': crit.state_dict(),
+        'g_optim': opt_gen.state_dict(),
+        'd_optim': opt_crit.state_dict(),
+        'parameters': (step, alpha, z_dim, w_dim, in_channels, img_channels),
+    }, f'./models/{identifier}/trained.pth')
+
+def load_model(gen, identifier, with_critic=False, crit=None, with_optim=False, opt_gen=None, opt_crit=None):
+    print('identifier', identifier)
+    model = torch.load(f'./models/{identifier}/trained.pth')
+    gen.load_state_dict(model['generator'])
+    if with_critic:
+        crit.load_state_dict(model['discriminator'])
+    step, alpha, z_dim, w_dim, in_channels, img_channels = model['parameters']
+    if with_optim:
+        opt_gen.load_state_dict(model['g_optim'])
+        opt_crit.load_state_dict(model['d_optim'])
+
+    return step, alpha
+
+def load_all(identifier):
+    return torch.load(f'./models/{identifier}/trained.pth')

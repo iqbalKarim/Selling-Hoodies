@@ -4,16 +4,17 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from math import log2
 from tqdm import tqdm
-from stylegan_utils import gradient_penalty, generate_examples
+from stylegan_utils import gradient_penalty, generate_examples, save_model
 from PIL import Image, ImageFile
 from classes import Generator, Discriminator
 from pytorchsummary import summary
+import numpy
 
 DATASET = "/vol/bitbucket/ik323/fyp/dataset"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
-BATCH_SIZES = [512, 256, 128, 64, 32, 16, 8]
+BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
@@ -35,11 +36,12 @@ def get_loader(image_size=256, device='cpu'):
             transforms.RandomHorizontalFlip(p=0.5),
         ]
     )
-    batch_size = BATCH_SIZES[int(log2(image_size / 8))]
+    batch_size = BATCH_SIZES[int(log2(image_size / 4))]
     print(f'Batch Size: {batch_size}, Image Size: {image_size}')
     dataset = datasets.ImageFolder(root=DATASET, transform=transform)
+    dataset_subset = torch.utils.data.Subset(dataset, numpy.random.choice(len(dataset), 256, replace=False))
     loader = DataLoader(
-        dataset,
+        dataset_subset,
         num_workers=6,
         batch_size=batch_size,
         shuffle=True,
@@ -122,5 +124,12 @@ def tester():
 
         generate_examples(generator, step, z_dim=Z_DIM, n=2, device=DEVICE)
         step += 1
+
+    # noise = torch.randn(1, z_dim).to(device)
+    # img = gen(noise, alpha, steps)
+    save_model(generator, critic, opt_gen, opt_critic, alpha,
+               Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
+               step, identifier='first')
+
 
 tester()

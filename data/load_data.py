@@ -55,6 +55,7 @@ def plot_transformed_images(transform):
 
 def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_samples=False, size=(512, 512)):
     print("Loading data.\n")
+    Image.MAX_IMAGE_PIXELS = None
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
     if MNIST:

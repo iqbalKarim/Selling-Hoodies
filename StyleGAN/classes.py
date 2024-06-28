@@ -99,7 +99,7 @@ class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ConvBlock, self).__init__()
         self.conv1 = WSConv2d(in_channels, out_channels)
-        self.conv2 = WSConv2d(in_channels, out_channels)
+        self.conv2 = WSConv2d(out_channels, out_channels)
         self.leaky = nn.LeakyReLU(0.2)
 
     def forward(self, x):
@@ -117,6 +117,7 @@ class Discriminator(nn.Module):
         for i in range(len(factors) - 1, 0, -1 ):
             conv_in = int(in_channels * factors[i])
             conv_out = int(in_channels * factors[i - 1])
+            # print(f'\t\tConv In: {conv_in} \t Conv Out: {conv_out} \t Factor: {factors[i]}')
             self.prog_blocks.append(ConvBlock(conv_in, conv_out))
             self.rgb_layers.append(
                 WSConv2d(img_channels, conv_in, kernel_size=1, stride=1, padding=0)
@@ -143,7 +144,7 @@ class Discriminator(nn.Module):
         batch_statistics = (torch.std(x, dim=0).mean().repeat(x.shape[0], 1, x.shape[2], x.shape[3]))
         return torch.cat([x, batch_statistics], dim=1)
 
-    def forward(self, x, alpha, steps):
+    def forward(self, x, alpha, steps: int):
         cur_step = len(self.prog_blocks) - steps
         out = self.leaky(self.rgb_layers[cur_step](x))
 
@@ -204,7 +205,7 @@ class Generator(nn.Module):
     def fade_in(self, alpha, upscaled, generated):
         return torch.tanh(alpha * generated + (1 - alpha) * upscaled)
 
-    def forward(self, noise, alpha, steps):
+    def forward(self, noise, alpha, steps: int):
         w = self.map(noise)
         x = self.initial_adain1(self.initial_noise1(self.starting_constant), w)
         x = self.initial_conv(x)
@@ -214,7 +215,7 @@ class Generator(nn.Module):
             return self.initial_rgb(x)
 
         for step in range(steps):
-            upscaled = F.interpolate(out, scale_factor=2, mode='bilinear')
+            upscaled = F.interpolate(out, scale_factor=float(2), mode='bilinear')
             out = self.prog_blocks[step](upscaled, w)
 
         final_upscaled = self.rgb_layers[steps - 1](upscaled)
