@@ -123,7 +123,7 @@ def tester():
         save_model(generator, critic, opt_gen, opt_critic, alpha,
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
                    step, identifier=f'step{step}_alpha{alpha}')
-        generate_examples(generator, step, z_dim=Z_DIM, n=2, device=DEVICE)
+        generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE)
         step += 1
 
     # noise = torch.randn(1, z_dim).to(device)
