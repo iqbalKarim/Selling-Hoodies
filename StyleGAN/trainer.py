@@ -7,7 +7,6 @@ from tqdm import tqdm
 from stylegan_utils import gradient_penalty, generate_examples, save_model
 from PIL import Image, ImageFile
 from classes import Generator, Discriminator
-from pytorchsummary import summary
 import numpy
 
 DATASET = "/vol/bitbucket/ik323/fyp/dataset"
@@ -121,7 +120,9 @@ def tester():
             print(f"Epoch [{epoch+1}/{num_epochs}]")
             alpha = trainer(generator, critic, step, alpha, opt_critic, opt_gen,
                             scaler_c, scaler_g, device=DEVICE, z_dim=Z_DIM)
-
+        save_model(generator, critic, opt_gen, opt_critic, alpha,
+                   Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
+                   step, identifier=f'step{step}_alpha{alpha}')
         generate_examples(generator, step, z_dim=Z_DIM, n=2, device=DEVICE)
         step += 1
 
@@ -129,7 +130,7 @@ def tester():
     # img = gen(noise, alpha, steps)
     save_model(generator, critic, opt_gen, opt_critic, alpha,
                Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-               step, identifier='first')
+               step, identifier='final')
 
 
 tester()
