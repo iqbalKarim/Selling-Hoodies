@@ -1,6 +1,7 @@
 import torch
 from torch import optim
-from torchvision import datasets, transforms
+from torchvision import datasets
+import torchvision.transforms.v2 as transforms
 from torch.utils.data import DataLoader
 from math import log2
 from tqdm import tqdm
@@ -19,7 +20,7 @@ Z_DIM = 256
 W_DIM = 256
 IN_CHANNELS= 256
 LAMBDA_GP = 10
-PROGRESSIVE_EPOCHS = [1] * len(BATCH_SIZES)
+PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 # print(BATCH_SIZES[int(log2(512 / 8))])
@@ -38,9 +39,9 @@ def get_loader(image_size=256, device='cpu'):
     batch_size = BATCH_SIZES[int(log2(image_size / 4))]
     print(f'Batch Size: {batch_size}, Image Size: {image_size}')
     dataset = datasets.ImageFolder(root=DATASET, transform=transform)
-    dataset_subset = torch.utils.data.Subset(dataset, numpy.random.choice(len(dataset), 256, replace=False))
+    # dataset_subset = torch.utils.data.Subset(dataset, numpy.random.choice(len(dataset), 256, replace=False))
     loader = DataLoader(
-        dataset_subset,
+        dataset,
         num_workers=6,
         batch_size=batch_size,
         shuffle=True,
