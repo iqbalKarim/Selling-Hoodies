@@ -4,11 +4,10 @@ from torchvision.utils import save_image, make_grid
 
 
 def generate_samples(generator, output_path='results/output.jpg',
-                     show_separate_plots=False, num_samples=10, latent_d=64):
+                     show_separate_plots=False, num_samples=10, latent_d=64, device="cpu"):
     with torch.no_grad():
-        noise = torch.randn(num_samples, latent_d, 1, 1)
+        noise = torch.randn(num_samples, latent_d, 1, 1, device=device)
         samples = generator(noise)
-
         grid = make_grid(samples, 5)
         save_image(grid, output_path)
 
