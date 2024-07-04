@@ -47,7 +47,7 @@ def W_GAN_MNIST(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, z_dim=64, 
 
 
 def W_GAN_SCULPTURES(batch_size=64, g_lr=0.0001, d_lr=0.0001, d_updates=5, z_dim=64):
-    dataloader = load_data(download=False, batch_size=batch_size, MNIST=False, size=(256, 256))
+    dataloader, _ = load_data(download=False, batch_size=batch_size, MNIST=False, size=(256, 256))
     beta_1 = 0.5
     beta_2 = 0.999
     n_epochs = 5000

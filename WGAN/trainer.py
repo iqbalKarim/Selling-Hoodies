@@ -83,7 +83,8 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
     discriminator_losses = []
     critic_losses_across_critic_repeats = []
     for epoch in range(n_epochs):
-        for real, _ in tqdm(dataloader, desc=f'Epoch {epoch}'):
+        loop = tqdm(dataloader, leave=False)
+        for batch_idx, (real, _) in enumerate(loop):
             cur_batch_size = len(real)
             real = real.to(device)
 
@@ -141,6 +142,8 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
 
             # Keep track of the average generator loss
             generator_losses += [gen_loss.item()]
+            loop.set_description(f"Epoch {epoch}")
+            loop.set_postfix(loss_critic=crit_loss.item(), loss_gen=gen_loss.item())
 
         if epoch % 10 == 0:
             generate_fake_images_from_generator(generator, latent_dim, batch_size,
