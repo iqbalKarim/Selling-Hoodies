@@ -60,10 +60,10 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
 
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
-        with torch.autocast(device_type=device, dtype=torch.float16):
-            fake = generator(noise, alpha, step)
-            critic_real = critic(real, alpha, step)
-            critic_fake = critic(fake, alpha, step)
+        # with torch.autocast(device_type=device, dtype=torch.float16):
+        fake = generator(noise, alpha, step)
+        critic_real = critic(real, alpha, step)
+        critic_fake = critic(fake, alpha, step)
         gp = gradient_penalty(critic, real, fake, alpha, step, device=device)
 
         with torch.autocast(device_type=device, dtype=torch.float16):
@@ -78,10 +78,13 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
         gen_fake = critic(fake, alpha, step)
         loss_gen = -torch.mean(gen_fake)
 
+        # opt_gen.zero_grad()
+        # scaler_g.scale(loss_gen).backward(retain_graph=True)
+        # scaler_g.step(opt_gen)
+        # scaler_g.update()
         opt_gen.zero_grad()
-        scaler_g.scale(loss_gen).backward(retain_graph=True)
-        scaler_g.step(opt_gen)
-        scaler_g.update()
+        loss_gen.backward()
+        opt_gen.step()
 
         alpha += cur_batch_size / ((PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))
         alpha = min(alpha, 1)
