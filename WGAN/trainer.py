@@ -94,29 +94,30 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
                 disc_optimizer.zero_grad()
                 fake_noise = get_noise(cur_batch_size, latent_dim, device=device)
 
-                # with torch.autocast(device_type=device, dtype=torch.float16):
-                fake = generator(fake_noise)
-                critic_fake_prediction = discriminator(fake.detach())
-                crit_real_pred = discriminator(real)
+                with torch.autocast(device_type=device, dtype=torch.float16):
+                    fake = generator(fake_noise)
+                    critic_fake_prediction = discriminator(fake.detach())
+                    crit_real_pred = discriminator(real)
 
                 epsilon = torch.rand(len(real), 1, 1, 1, device=device, requires_grad=True)
                 # epsilon will be a Tensor of size torch.Size([128, 1, 1, 1]) for batch_size of 128
                 gradient = gradient_of_critic_score(discriminator, real, fake.detach(), epsilon)
                 gp = gradient_penalty_l2_norm(gradient)
 
-                # with torch.autocast(device_type=device, dtype=torch.float16):
-                crit_loss = get_crit_loss(critic_fake_prediction, crit_real_pred, gp, c_lambda)
+                with torch.autocast(device_type=device, dtype=torch.float16):
+                    crit_loss = get_crit_loss(critic_fake_prediction, crit_real_pred, gp, c_lambda)
 
                 # Keep track of the average critic loss in this batch
                 mean_critic_loss_for_this_iteration += crit_loss.item() / d_updates
 
                 # Update gradients
-                # scalerD.scale(crit_loss).backward(retain_graph=True)
-                crit_loss.backward(retain_graph=True)
+                # crit_loss.backward(retain_graph=True)
                 # Update the weights
-                disc_optimizer.step()
-                # scalerD.step(disc_optimizer)
-                # scalerD.update()
+                # disc_optimizer.step()
+                scalerD.scale(crit_loss).backward(retain_graph=True)
+                scalerD.step(disc_optimizer)
+                scalerD.update()
+
                 discriminator_losses += [crit_loss.item()]
 
             critic_losses_across_critic_repeats += [mean_critic_loss_for_this_iteration]
@@ -125,20 +126,19 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
             gen_optimizer.zero_grad()
             fake_noise_2 = get_noise(cur_batch_size, latent_dim, device=device)
 
-            # with torch.autocast(device_type=device, dtype=torch.float16):
-            fake_2 = generator(fake_noise_2)
-            critic_fake_prediction = discriminator(fake_2)
-            # Update the gradients
-            gen_loss = get_gen_loss(critic_fake_prediction)
+            with torch.autocast(device_type=device, dtype=torch.float16):
+                fake_2 = generator(fake_noise_2)
+                critic_fake_prediction = discriminator(fake_2)
+                # Update the gradients
+                gen_loss = get_gen_loss(critic_fake_prediction)
 
 
             # Update the weights
-            # scalerG.scale(gen_loss).backward()
-            gen_loss.backward()
-            gen_optimizer.step()
-            # scalerG.step(gen_optimizer)
-
-            # scalerG.update()
+            # gen_loss.backward()
+            # gen_optimizer.step()
+            scalerG.scale(gen_loss).backward()
+            scalerG.step(gen_optimizer)
+            scalerG.update()
 
             # Keep track of the average generator loss
             generator_losses += [gen_loss.item()]

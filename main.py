@@ -16,7 +16,7 @@ def paramsearch_and_training_MNIST():
             W_GAN_MNIST(batch, g_lr, d_lr)
 
 def paramsearch_and_training_sculptures():
-    batch = 256
+    batch = 64
     g_lr = 0.0001
     d_lr = 0.0001
     W_GAN_SCULPTURES(batch, g_lr, d_lr, z_dim=150)
