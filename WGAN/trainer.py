@@ -82,6 +82,12 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
     generator_losses = []
     discriminator_losses = []
     critic_losses_across_critic_repeats = []
+    fake_samples = generate_samples(generator, f'{output_path}/checkpoint_{1}.jpg',
+                                    latent_d=latent_dim, num_samples=8, device=device)
+    torch.jit.save(torch.jit.trace(generator, torch.rand(batch_size, latent_dim, 1, 1, device=device)),
+                   f'{output_path}/{1}_G_model.pth')
+    torch.jit.save(torch.jit.trace(discriminator, fake_samples),
+                   f'{output_path}/{1}_D_model.pth')
     for epoch in range(n_epochs):
         loop = tqdm(dataloader, leave=False)
         for batch_idx, (real, _) in enumerate(loop):
@@ -180,7 +186,7 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
         if epoch % 100 == 0:
             fake_samples = generate_samples(generator, f'{output_path}/checkpoint_{epoch}.jpg',
                                             latent_d=latent_dim, num_samples=8, device=device)
-            torch.jit.save(torch.jit.trace(generator, torch.rand(batch_size, latent_dim, 1, 1)),
+            torch.jit.save(torch.jit.trace(generator, torch.rand(batch_size, latent_dim, 1, 1, device=device)),
                            f'{output_path}/{epoch}_G_model.pth')
             torch.jit.save(torch.jit.trace(discriminator, fake_samples),
                            f'{output_path}/{epoch}_D_model.pth')
