@@ -20,7 +20,7 @@ Z_DIM = 256
 W_DIM = 256
 IN_CHANNELS= 256
 LAMBDA_GP = 10
-PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
+PROGRESSIVE_EPOCHS = [2] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 # print(BATCH_SIZES[int(log2(512 / 8))])
@@ -39,9 +39,9 @@ def get_loader(image_size=256, device='cpu'):
     batch_size = BATCH_SIZES[int(log2(image_size / 4))]
     print(f'Batch Size: {batch_size}, Image Size: {image_size}')
     dataset = datasets.ImageFolder(root=DATASET, transform=transform)
-    # dataset_subset = torch.utils.data.Subset(dataset, numpy.random.choice(len(dataset), 256, replace=False))
+    dataset_subset = torch.utils.data.Subset(dataset, numpy.random.choice(len(dataset), 300, replace=False))
     loader = DataLoader(
-        dataset,
+        dataset_subset,
         num_workers=6,
         batch_size=batch_size,
         shuffle=True,
@@ -66,14 +66,15 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
         critic_fake = critic(fake, alpha, step)
         gp = gradient_penalty(critic, real, fake, alpha, step, device=device)
 
-        with torch.autocast(device_type=device, dtype=torch.float16):
-            loss_critic = (- (torch.mean(critic_real) - torch.mean(critic_fake)) + lamda_gp * gp
-                           + (0.001 * torch.mean(critic_real ** 2)))
-
+        # with torch.autocast(device_type=device, dtype=torch.float16):
+        loss_critic = (- (torch.mean(critic_real) - torch.mean(critic_fake)) + lamda_gp * gp
+                       + (0.001 * torch.mean(critic_real ** 2)))
         opt_critic.zero_grad()
-        scaler_c.scale(loss_critic).backward(retain_graph=True)
-        scaler_c.step(opt_critic)
-        scaler_c.update()
+        loss_critic.backward(retain_graph=True)
+        opt_critic.step()
+        # scaler_c.scale(loss_critic).backward(retain_graph=True)
+        # scaler_c.step(opt_critic)
+        # scaler_c.update()
 
         gen_fake = critic(fake, alpha, step)
         loss_gen = -torch.mean(gen_fake)
@@ -83,7 +84,7 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
         # scaler_g.step(opt_gen)
         # scaler_g.update()
         opt_gen.zero_grad()
-        loss_gen.backward()
+        loss_gen.backward(retain_graph=True)
         opt_gen.step()
 
         alpha += cur_batch_size / ((PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))

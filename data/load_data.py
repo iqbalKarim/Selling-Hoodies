@@ -118,7 +118,7 @@ def load_data(download=False, batch_size=64, MNIST=False, num_samples=5, show_sa
         transforms.Resize(size=size),
         # Turn the image into a torch.Tensor
         transforms.ToTensor(), # this also converts all pixel values from 0 to 255 to be between 0.0 and 1.0
-        transforms.RandomHorizontalFlip()
+        transforms.RandomHorizontalFlip(p=0.5)
     ])
     # plot_transformed_images(data_transform)
 
