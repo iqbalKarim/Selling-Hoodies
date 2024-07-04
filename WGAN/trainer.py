@@ -149,6 +149,12 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
         if epoch % 10 == 0:
             generate_fake_images_from_generator(generator, latent_dim, batch_size,
                                                 file_path=f"{output_path}/{epoch}.png", device="cuda")
+            fake_samples = generate_samples(generator, f'{output_path}/checkpoint_{epoch}.jpg',
+                                            latent_d=latent_dim, num_samples=8, device=device)
+            torch.jit.save(torch.jit.trace(generator, torch.rand(batch_size, latent_dim, 1, 1, device=device)),
+                           f'{output_path}/{epoch}_G_model.pth')
+            torch.jit.save(torch.jit.trace(discriminator, fake_samples),
+                           f'{output_path}/{epoch}_D_model.pth')
 
         generator_mean_loss_display_step = sum(generator_losses[-display_step:]) / display_step
         critic_mean_loss_display_step = sum(critic_losses_across_critic_repeats[-display_step:]) / display_step
@@ -177,13 +183,5 @@ def train_WGAN(generator, discriminator, dataloader, batch_size,
         plt.legend()
         plt.savefig(f"{output_path}/training_graph.jpg")
         plt.close()
-
-        if epoch % 100 == 0:
-            fake_samples = generate_samples(generator, f'{output_path}/checkpoint_{epoch}.jpg',
-                                            latent_d=latent_dim, num_samples=8, device=device)
-            torch.jit.save(torch.jit.trace(generator, torch.rand(batch_size, latent_dim, 1, 1, device=device)),
-                           f'{output_path}/{epoch}_G_model.pth')
-            torch.jit.save(torch.jit.trace(discriminator, fake_samples),
-                           f'{output_path}/{epoch}_D_model.pth')
 
     return discriminator_losses, generator_losses
