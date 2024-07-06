@@ -2,16 +2,20 @@ import torch
 import os
 from torchvision.utils import save_image
 
-def generate_examples(gen, steps, z_dim, n=100, device='cpu'):
+def generate_examples(gen, steps, z_dim, n=100, device='cpu', uniq_path=None):
     gen.eval()
     alpha = 1.0
     for i in range(n):
         with torch.no_grad():
             noise = torch.randn(1, z_dim).to(device)
             img = gen(noise, alpha, steps)
-            if not os.path.exists(f'saved_examples/step{steps}'):
-                os.makedirs(f'saved_examples/step{steps}')
-            save_image(img*0.5+0.5, f"saved_examples/step{steps}/img_{i}.png")
+            if uniq_path:
+                path = uniq_path
+            else:
+                path = f'saved_examples/step{steps}'
+            if not os.path.exists(path):
+                os.makedirs(path)
+            save_image(img*0.5+0.5, f"{path}/img_{i}.png")
     gen.train()
 
 def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
