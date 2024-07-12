@@ -184,4 +184,5 @@ def continueTraining(identifier):
 
 
 # tester()
-continueTraining('step3_alpha1')
+continueTraining('step5_alpha1')
+
