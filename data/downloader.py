@@ -14,13 +14,13 @@ def is_valid_image_pillow(file_name):
 with open('out.txt', 'w') as f:
     print("Loading data.\n", file=f)
 
-    # data_path = "./data/dataset/train/"
-    data_path = "/vol/bitbucket/ik323/fyp/dataset/abstract/"
+    data_path = "./dataset/painting/"
+    # data_path = "/vol/bitbucket/ik323/fyp/dataset/abstract/"
 
     count = 0
     df = pd.read_csv("omniart_v3_datadump.csv")
     # only get sculptures
-    df = df[df["artwork_type"] == "abstract"]
+    df = df[df["artwork_type"] == "painting"]
 
     # image_urls = df["image_url"]
     # print(image_urls)
@@ -47,6 +47,8 @@ with open('out.txt', 'w') as f:
     for ind in df.index:
         # print(df['id'][ind], df['image_url'][ind])
         # print(url)
+        if count == 50: break
+
         url = df['image_url'][ind]
         id = df['id'][ind]
         try:
@@ -57,6 +59,7 @@ with open('out.txt', 'w') as f:
                 os.remove(path_to_file)
         except Exception as e:
             # print('Error on ' + str(count) + ' with URL: ' + image_urls[count] + '\n\t' + repr(e))
-            print('Error on ' + str(count) + ' with URL: ' + url + '\n\t' + repr(e), file=f)
+            # print('Error on ' + str(count) + ' with URL: ' + url + '\n\t' + repr(e), file=f)
+            print('Error on ' + str(id) + ' with URL: ' + url + '\n\t' + repr(e), file=f)
         count += 1
     print("Images downloaded and verified.\n", file=f)
