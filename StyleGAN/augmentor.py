@@ -26,23 +26,25 @@ class AdaptiveAugmenter(nn.Module):
     def forward(self, images):
         print('prob: ', self.probability.item())
         pipe = self.constructPipe()
-        pipe = transforms.Compose(pipe)
+        if len(pipe) > 0:
+            pipe = transforms.Compose(pipe)
 
-        augmented_images = pipe(images)
-        if torch.randn(1).item() <= self.probability.item():
-            augmented_images = transforms.functional.rotate(augmented_images, angle=90)
+            augmented_images = pipe(images)
+            if torch.randn(1).item() <= self.probability.item():
+                augmented_images = transforms.functional.rotate(augmented_images, angle=90)
 
-        augmented_images = self.resizer2(augmented_images)
-        # augmented_images = self.resizer(augmented_images)
+            augmented_images = self.resizer2(augmented_images)
+            # augmented_images = self.resizer(augmented_images)
 
-        augmentation_values = torch.rand(self.batch_size, 1, 1, 1, device=self.device)
-        augmentation_bools = augmentation_values < self.probability
+            augmentation_values = torch.rand(self.batch_size, 1, 1, 1, device=self.device)
+            augmentation_bools = augmentation_values < self.probability
 
-        images = self.resizer2(images)
-        # augmentation_bools.to(self.device)
-        out_images = torch.where(augmentation_bools, augmented_images, images)
-
-        return out_images
+            images = self.resizer2(images)
+            # augmentation_bools.to(self.device)
+            out_images = torch.where(augmentation_bools, augmented_images, images)
+            return out_images
+        else:
+            return images
 
     def constructPipe(self):
         pipe = []
