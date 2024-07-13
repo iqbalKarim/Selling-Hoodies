@@ -7,3 +7,7 @@ StyleGAN/saved_examples/
 data/omniart_v3_datadump.csv
 data/dataset
 data/mnist
+frameExtractor/frame*
+frameExtractor/vid.mp4
+data/nst
+data/out.txt

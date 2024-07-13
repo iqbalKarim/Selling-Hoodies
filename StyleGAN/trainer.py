@@ -9,12 +9,15 @@ from stylegan_utils import gradient_penalty, generate_examples, save_model, load
 from PIL import Image, ImageFile
 from classes import Generator, Discriminator
 import numpy
+from StyleGAN2.augmentor import AdaptiveAugmenter
 
 DATASET = "/vol/bitbucket/ik323/fyp/dataset"
+# DATASET = "../data/dataset/"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
 BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+# BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
@@ -65,16 +68,22 @@ def get_loader(image_size=256, device='cpu'):
 def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scaler_g, z_dim=256, device='cpu',
             lamda_gp=10):
     dataloader, dataset = get_loader(image_size=4*2**step)
+    ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4*2**step) / 4))], size=4*2**step, device=device)
+    ada.to(device)
 
     loop = tqdm(dataloader, leave=False)
     for batch_idx, (real, _) in enumerate(loop):
         real = real.to(device)
+        real = ada(real)
+
         cur_batch_size = real.shape[0]
 
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
         # with torch.autocast(device_type=device, dtype=torch.float16):
         fake = generator(noise, alpha, step)
+        fake = ada(fake)
+
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake, alpha, step)
         gp = gradient_penalty(critic, real, fake, alpha, step, device=device)
@@ -91,6 +100,8 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
 
         gen_fake = critic(fake, alpha, step)
         loss_gen = -torch.mean(gen_fake)
+
+        ada.update(critic_real)
 
         # opt_gen.zero_grad()
         # scaler_g.scale(loss_gen).backward(retain_graph=True)
@@ -183,6 +194,7 @@ def continueTraining(identifier):
         step += 1
 
 
-# tester()
-continueTraining('step5_alpha1')
+if __name__ == '__main__':
+    tester()
+# continueTraining('step5_alpha1')
 
