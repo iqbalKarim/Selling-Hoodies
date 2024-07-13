@@ -81,8 +81,10 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
         # with torch.autocast(device_type=device, dtype=torch.float16):
-        fake = generator(noise, alpha, step)
-        fake = ada(fake)
+        temp = generator(noise, alpha, step)
+        fake = ada(temp)
+        del temp
+        torch.cuda.empty_cache()
 
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake, alpha, step)
