@@ -9,7 +9,7 @@ from stylegan_utils import gradient_penalty, generate_examples, save_model, load
 from PIL import Image, ImageFile
 from classes import Generator, Discriminator
 import numpy
-from StyleGAN2.augmentor import AdaptiveAugmenter
+from augmentor import AdaptiveAugmenter
 
 DATASET = "/vol/bitbucket/ik323/fyp/dataset"
 # DATASET = "../data/dataset/"
