@@ -78,4 +78,4 @@ class AdaptiveAugmenter(nn.Module):
         current_accuracy = real_logits.mean()
         accuracy_error = current_accuracy - self.target_accuracy
         integration_steps = 1000
-        self.probability = torch.clamp((self.probability + accuracy_error) * self.batch_size / integration_steps, min=0.0, max=1.0).item()
+        self.probability = torch.clamp(self.probability + (accuracy_error * self.batch_size / integration_steps), min=0.0, max=1.0).item()
