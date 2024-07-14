@@ -11,14 +11,14 @@ from classes import Generator, Discriminator
 import numpy
 from augmentor import AdaptiveAugmenter
 
-# DATASET = "/vol/bitbucket/ik323/fyp/dataset"
-DATASET = "../data/dataset/"
+DATASET = "/vol/bitbucket/ik323/fyp/dataset"
+# DATASET = "../data/dataset/"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
 # BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
-# BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
-BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
+BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+# BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
