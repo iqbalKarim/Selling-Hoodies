@@ -15,7 +15,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class AdaptiveAugmenter(nn.Module):
-    def __init__(self, batch_size, size=256, target_accuracy=0.80, device='cpu', p=0.0):
+    def __init__(self, batch_size, size=256, channels_img=3, target_accuracy=0.80, device='cpu', p=0.0):
         super().__init__()
         self.device = device
         self.target_accuracy = target_accuracy
@@ -24,6 +24,10 @@ class AdaptiveAugmenter(nn.Module):
         self.probability = p
         self.resizer = transforms.Resize(size=(size, size))
         self.resizer2 = transforms.RandomResizedCrop(size=(size, size), scale=(0.6, 1.4), ratio=(0.8, 1.2))
+        self.normalizer = transforms.Normalize(
+                [0.5 for _ in range(channels_img)],
+                [0.5 for _ in range(channels_img)],
+            )
         self.rng = np.random.default_rng()
 
 
@@ -45,11 +49,11 @@ class AdaptiveAugmenter(nn.Module):
                 images = self.resizer2(images)
                 # augmentation_bools.to(self.device)
                 out_images = torch.where(augmentation_bools, augmented_images, images)
-                return out_images
+                return self.normalizer(out_images)
             else:
-                return images
+                return self.normalizer(images)
         else:
-            return images
+            return self.normalizer(images)
 
     def constructPipe(self):
         pipe = []

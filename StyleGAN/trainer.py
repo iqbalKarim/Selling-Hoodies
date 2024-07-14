@@ -33,17 +33,21 @@ def get_loader(image_size=256, device='cpu'):
     Image.MAX_IMAGE_PIXELS = None
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-    transform = transforms.Compose(
-        [
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Normalize(
-                [0.5 for _ in range(CHANNELS_IMG)],
-                [0.5 for _ in range(CHANNELS_IMG)],
-            )
-        ]
-    )
+    # transform = transforms.Compose(
+    #     [
+    #         transforms.Resize((image_size, image_size)),
+    #         transforms.ToTensor(),
+    #         transforms.RandomHorizontalFlip(p=0.5),
+    #         transforms.Normalize(
+    #             [0.5 for _ in range(CHANNELS_IMG)],
+    #             [0.5 for _ in range(CHANNELS_IMG)],
+    #         )
+    #     ]
+    # )
+    transform = transforms.Compose([
+        transforms.Resize((image_size, image_size)),
+        transforms.ToTensor()
+    ])
     batch_size = BATCH_SIZES[int(log2(image_size / 4))]
     print(f'Batch Size: {batch_size}, Image Size: {image_size}')
     dataset = datasets.ImageFolder(root=DATASET, transform=transform)
@@ -145,7 +149,8 @@ def tester():
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
         ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
-                                size=4 * 2 ** step, p=0.1, device=DEVICE).to(DEVICE)
+                                size=4 * 2 ** step, p=0.1, channels_img=CHANNELS_IMG,
+                                device=DEVICE).to(DEVICE)
 
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
@@ -185,7 +190,7 @@ def continueTraining(identifier):
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
         ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
-                                size=4 * 2 ** step, device=DEVICE).to(DEVICE)
+                                size=4 * 2 ** step, channels_img=CHANNELS_IMG, device=DEVICE).to(DEVICE)
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
             alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
