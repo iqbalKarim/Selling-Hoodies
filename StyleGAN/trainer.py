@@ -113,7 +113,7 @@ def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, 
         alpha += cur_batch_size / ((PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))
         alpha = min(alpha, 1)
 
-        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(), loss_gen=loss_gen.item())
+        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(), loss_gen=loss_gen.item(), ada_p=ada.probability)
         # loop.set_description(f'Epoch {str(0)}')
 
     return alpha
