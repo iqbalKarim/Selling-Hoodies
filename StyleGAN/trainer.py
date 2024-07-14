@@ -11,14 +11,14 @@ from classes import Generator, Discriminator
 import numpy
 from augmentor import AdaptiveAugmenter
 
-DATASET = "/vol/bitbucket/ik323/fyp/dataset"
-# DATASET = "../data/dataset/"
+# DATASET = "/vol/bitbucket/ik323/fyp/dataset"
+DATASET = "../data/dataset/"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
 # BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
-BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
-# BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
+# BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
@@ -28,7 +28,7 @@ PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 # print(BATCH_SIZES[int(log2(512 / 8))])
-print(f"Using: {DEVICE}")
+# print(f"Using: {DEVICE}")
 def get_loader(image_size=256, device='cpu'):
     Image.MAX_IMAGE_PIXELS = None
     ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -80,8 +80,8 @@ def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, 
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
         # with torch.autocast(device_type=device, dtype=torch.float16):
-        fake = generator(noise, alpha, step)
-        fake = ada(fake)
+        temp = generator(noise, alpha, step)
+        fake = ada(temp.detach())
 
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake, alpha, step)
@@ -113,7 +113,8 @@ def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, 
         alpha += cur_batch_size / ((PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))
         alpha = min(alpha, 1)
 
-        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(), loss_gen=loss_gen.item(), ada_p=ada.probability)
+        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(), loss_gen=loss_gen.item(),
+                         ada_p=ada.probability)
         # loop.set_description(f'Epoch {str(0)}')
 
     return alpha
@@ -144,7 +145,7 @@ def tester():
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
         ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
-                                size=4 * 2 ** step, device=DEVICE).to(DEVICE)
+                                size=4 * 2 ** step, p=0.1, device=DEVICE).to(DEVICE)
 
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")

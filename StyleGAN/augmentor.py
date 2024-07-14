@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from PIL import Image, ImageFile
 import os
 from torchvision.utils import save_image
+import numpy as np
 
 Image.MAX_IMAGE_PIXELS = None
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -14,7 +15,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class AdaptiveAugmenter(nn.Module):
-    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu', p=0):
+    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu', p=0.0):
         super().__init__()
         self.device = device
         self.target_accuracy = target_accuracy
@@ -23,15 +24,16 @@ class AdaptiveAugmenter(nn.Module):
         self.probability = p
         self.resizer = transforms.Resize(size=(size, size))
         self.resizer2 = transforms.RandomResizedCrop(size=(size, size), scale=(0.6, 1.4), ratio=(0.8, 1.2))
+        self.rng = np.random.default_rng()
+
 
     def forward(self, images):
         if self.probability > 0.0:
             pipe = self.constructPipe()
             if len(pipe) > 0:
                 pipe = transforms.Compose(pipe)
-
-                augmented_images = pipe(images.clone())
-                if torch.randn(1) <= self.probability:
+                augmented_images = pipe(images)
+                if self.rng.random() <= self.probability:
                     augmented_images = transforms.functional.rotate(augmented_images, angle=90)
 
                 augmented_images = self.resizer2(augmented_images)
@@ -55,19 +57,19 @@ class AdaptiveAugmenter(nn.Module):
         # pipe.append(transforms.RandomResizedCrop(size=(256, 256), scale=(0.6, 1.4), ratio=(0.8, 1.2)))
         # images = transforms.functional.rotate(images, angle=90)
 
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.RandomHorizontalFlip(p=1.0))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.RandomVerticalFlip(p=1.0))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.ColorJitter(brightness=(0.5, 1.5)))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.ColorJitter(hue=(-0.3, 0.3)))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.ColorJitter(contrast=(0.5, 1.5)))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.ColorJitter(saturation=(0.5, 1.5)))
-        if torch.randn(1).item() <= self.probability:
+        if self.rng.random() <= self.probability:
             pipe.append(transforms.RandomErasing(p=1, scale=(0.02, 0.25), ratio=(0.7, 1.3)))
 
         return pipe
@@ -75,5 +77,5 @@ class AdaptiveAugmenter(nn.Module):
     def update(self, real_logits):
         current_accuracy = real_logits.mean()
         accuracy_error = current_accuracy - self.target_accuracy
-        integration_steps = 1000
-        self.probability = torch.clamp(self.probability + accuracy_error / integration_steps, min=0.0, max=1.0)
+        integration_steps = 100
+        self.probability = torch.clamp(self.probability + accuracy_error / integration_steps, min=0.0, max=1.0).item()
