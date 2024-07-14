@@ -15,7 +15,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class AdaptiveAugmenter(nn.Module):
-    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu', p=0.0):
+    def __init__(self, batch_size, size=256, target_accuracy=0.80, device='cpu', p=0.0):
         super().__init__()
         self.device = device
         self.target_accuracy = target_accuracy
