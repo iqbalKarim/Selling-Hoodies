@@ -42,7 +42,7 @@ def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
 
 def save_model(gen, crit, opt_gen, opt_crit, alpha,
                z_dim, w_dim, in_channels, img_channels,
-               step, identifier='STYLEGAN'):
+               step, ada_p, identifier='STYLEGAN'):
     if not os.path.exists(f'models/{identifier}'):
         os.makedirs(f'models/{identifier}')
     torch.save({
@@ -50,6 +50,7 @@ def save_model(gen, crit, opt_gen, opt_crit, alpha,
         'discriminator': crit.state_dict(),
         'g_optim': opt_gen.state_dict(),
         'd_optim': opt_crit.state_dict(),
+        'ada_prob': ada_p,
         'parameters': (step, alpha, z_dim, w_dim, in_channels, img_channels),
     }, f'./models/{identifier}/trained.pth')
 
@@ -60,11 +61,12 @@ def load_model(gen, identifier, with_critic=False, crit=None, with_optim=False, 
     if with_critic:
         crit.load_state_dict(model['discriminator'])
     step, alpha, z_dim, w_dim, in_channels, img_channels = model['parameters']
+    ada_prob = model['ada_prob']
     if with_optim:
         opt_gen.load_state_dict(model['g_optim'])
         opt_crit.load_state_dict(model['d_optim'])
 
-    return step, alpha
+    return step, alpha, ada_prob
 
 def load_all(identifier):
     return torch.load(f'./models/{identifier}/trained.pth')

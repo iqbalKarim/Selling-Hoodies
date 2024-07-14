@@ -14,15 +14,15 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class AdaptiveAugmenter(nn.Module):
-    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu'):
+    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu', p=0):
         super().__init__()
         self.device = device
         self.target_accuracy = target_accuracy
         self.batch_size = batch_size
         # self.probability = torch.tensor(0.0, requires_grad=True, dtype=torch.float16)
-        self.probability = 0
+        self.probability = p
         self.resizer = transforms.Resize(size=(size, size))
-        self.resizer2 = transforms.RandomResizedCrop(size=(256, 256), scale=(0.6, 1.4), ratio=(0.8, 1.2))
+        self.resizer2 = transforms.RandomResizedCrop(size=(size, size), scale=(0.6, 1.4), ratio=(0.8, 1.2))
 
     def forward(self, images):
         if self.probability > 0.0:

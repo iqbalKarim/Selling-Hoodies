@@ -16,8 +16,8 @@ DATASET = "/vol/bitbucket/ik323/fyp/dataset"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
-BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
-# BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+# BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
+BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
 # BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
@@ -66,11 +66,9 @@ def get_loader(image_size=256, device='cpu'):
     return loader, dataset
 
 
-def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scaler_g, z_dim=256, device='cpu',
+def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, scaler_g, z_dim=256, device='cpu',
             lamda_gp=10):
     dataloader, dataset = get_loader(image_size=4*2**step)
-    ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4*2**step) / 4))], size=4*2**step, device=device)
-    ada.to(device)
 
     loop = tqdm(dataloader, leave=False)
     for batch_idx, (real, _) in enumerate(loop):
@@ -145,14 +143,16 @@ def tester():
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
+        ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
+                                size=4 * 2 ** step, device=DEVICE).to(DEVICE)
 
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
-            alpha = trainer(generator, critic, step, alpha, opt_critic, opt_gen,
+            alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
                             scaler_c, scaler_g, device=DEVICE, z_dim=Z_DIM)
         save_model(generator, critic, opt_gen, opt_critic, alpha,
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-                   step, identifier=f'step{step}_alpha{alpha}')
+                   step, ada.probability, identifier=f'step{step}_alpha{alpha}')
         generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE)
         step += 1
 
@@ -160,7 +160,7 @@ def tester():
     # img = gen(noise, alpha, steps)
     save_model(generator, critic, opt_gen, opt_critic, alpha,
                Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-               step, identifier='final')
+               step, ada.probability, identifier='final')
 
 def continueTraining(identifier):
     generator = Generator(Z_DIM, W_DIM, IN_CHANNELS, img_channels=CHANNELS_IMG).to(DEVICE)
@@ -176,21 +176,22 @@ def continueTraining(identifier):
     scaler_g = torch.amp.GradScaler()
     scaler_c = torch.amp.GradScaler()
 
-    step, alpha = load_model(generator, identifier, with_critic=True, crit=critic,
+    step, alpha, ada_prob = load_model(generator, identifier, with_critic=True, crit=critic,
                              with_optim=True, opt_gen=opt_gen, opt_crit=opt_critic)
     # generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path='saved_examples/temp')
     step = step + 1
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
-
+        ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
+                                size=4 * 2 ** step, device=DEVICE).to(DEVICE)
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
-            alpha = trainer(generator, critic, step, alpha, opt_critic, opt_gen,
+            alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
                             scaler_c, scaler_g, device=DEVICE, z_dim=Z_DIM)
         save_model(generator, critic, opt_gen, opt_critic, alpha,
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-                   step, identifier=f'step{step}_alpha{alpha}')
+                   step, ada.probability, identifier=f'step{step}_alpha{alpha}')
         generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE)
         step += 1
 
