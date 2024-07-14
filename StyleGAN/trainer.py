@@ -195,9 +195,12 @@ def continueTraining(identifier):
                    step, ada.probability, identifier=f'step{step}_alpha{alpha}')
         generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE)
         step += 1
+    save_model(generator, critic, opt_gen, opt_critic, alpha,
+               Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
+               step, ada.probability, identifier='final')
 
 
 if __name__ == '__main__':
-    tester()
-# continueTraining('step5_alpha1')
+    # tester()
+    continueTraining('step4_alpha1')
 
