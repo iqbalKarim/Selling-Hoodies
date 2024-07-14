@@ -40,24 +40,26 @@ class AdaptiveAugmenter(nn.Module):
                 if self.rng.random() <= self.probability:
                     augmented_images = transforms.functional.rotate(augmented_images, angle=90)
 
-                augmented_images = self.resizer2(augmented_images)
+                # augmented_images = self.resizer2(augmented_images)
                 # augmented_images = self.resizer(augmented_images)
 
                 augmentation_values = torch.rand(self.batch_size, 1, 1, 1, device=self.device)
                 augmentation_bools = augmentation_values < self.probability
 
-                images = self.resizer2(images)
+                # images = self.resizer2(images)
                 # augmentation_bools.to(self.device)
                 out_images = torch.where(augmentation_bools, augmented_images, images)
                 return self.normalizer(out_images)
+                # return out_images
             else:
+                # return images
                 return self.normalizer(images)
         else:
+            # return images
             return self.normalizer(images)
 
     def constructPipe(self):
         pipe = []
-
         # pipe.append(transforms.RandomResizedCrop(size=(256, 256), scale=(0.6, 1.4), ratio=(0.8, 1.2)))
         # images = transforms.functional.rotate(images, angle=90)
 

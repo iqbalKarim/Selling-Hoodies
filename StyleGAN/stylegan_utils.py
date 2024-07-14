@@ -15,7 +15,8 @@ def generate_examples(gen, steps, z_dim, n=100, device='cpu', uniq_path=None):
                 path = f'saved_examples/step{steps}'
             if not os.path.exists(path):
                 os.makedirs(path)
-            save_image(img*0.5+0.5, f"{path}/img_{i}.png")
+            save_image(img*0.5+0.5, f"{path}/img_{steps}_{i}.png")
+            save_image(img, f"{path}/img2_{steps}_{i}.png")
     gen.train()
 
 def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):

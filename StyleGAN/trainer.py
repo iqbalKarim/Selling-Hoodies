@@ -11,20 +11,20 @@ from classes import Generator, Discriminator
 import numpy
 from augmentor import AdaptiveAugmenter
 
-DATASET = "/vol/bitbucket/ik323/fyp/dataset"
-# DATASET = "../data/dataset/"
+# DATASET = "/vol/bitbucket/ik323/fyp/dataset"
+DATASET = "../data/dataset/"
 START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
 # BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
-BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
-# BATCH_SIZES = [512, 4, 4, 4, 4, 16, 4]
+# BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+BATCH_SIZES = [512, 16, 8, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
 IN_CHANNELS = 256
 LAMBDA_GP = 10
-PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
+PROGRESSIVE_EPOCHS = [2] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 # print(BATCH_SIZES[int(log2(512 / 8))])
@@ -143,7 +143,6 @@ def tester():
 
     generator.train()
     critic.train()
-
     step = int(log2(START_TRAIN_AT_IMG_SIZE / 4))
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
@@ -206,6 +205,6 @@ def continueTraining(identifier):
 
 
 if __name__ == '__main__':
-    # tester()
-    continueTraining('step4_alpha1')
+    tester()
+    # continueTraining('step4_alpha1')
 
