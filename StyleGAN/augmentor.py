@@ -14,7 +14,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class AdaptiveAugmenter(nn.Module):
-    def __init__(self, batch_size, size=256, target_accuracy=0.85, device='cpu'):
+    def __init__(self, batch_size, size=256, target_accuracy=0.90, device='cpu'):
         super().__init__()
         self.device = device
         self.target_accuracy = target_accuracy
@@ -26,7 +26,6 @@ class AdaptiveAugmenter(nn.Module):
 
     def forward(self, images):
         if self.probability > 0.0:
-            print('prob: ', self.probability)
             pipe = self.constructPipe()
             if len(pipe) > 0:
                 pipe = transforms.Compose(pipe)
@@ -77,5 +76,4 @@ class AdaptiveAugmenter(nn.Module):
         current_accuracy = real_logits.mean()
         accuracy_error = current_accuracy - self.target_accuracy
         integration_steps = 1000
-        print(f'stepping: {accuracy_error}')
         self.probability = torch.clamp(self.probability + accuracy_error / integration_steps, min=0.0, max=1.0)
