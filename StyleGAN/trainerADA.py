@@ -27,32 +27,34 @@ LAMBDA_GP = 10
 PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
-# print(BATCH_SIZES[int(log2(512 / 8))])
-# print(f"Using: {DEVICE}")
-def get_loader(image_size=256, device='cpu'):
+print(f"Using: {DEVICE}")
+def get_loader(image_size=512, device='cpu'):
     Image.MAX_IMAGE_PIXELS = None
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-    transform = transforms.Compose(
-        [
-            transforms.Resize((image_size, image_size)),
-            transforms.ToImage(),
-            transforms.ToDtype(torch.float32, scale=True),
-            # transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Normalize(
-                [0.5 for _ in range(CHANNELS_IMG)],
-                [0.5 for _ in range(CHANNELS_IMG)],
-            )
-        ]
-    )
+    # transform = transforms.Compose(
+    #     [
+    #         transforms.Resize((image_size, image_size)),
+    #         transforms.ToTensor(),
+    #         transforms.RandomHorizontalFlip(p=0.5),
+    #         transforms.Normalize(
+    #             [0.5 for _ in range(CHANNELS_IMG)],
+    #             [0.5 for _ in range(CHANNELS_IMG)],
+    #         )
+    #     ]
+    # )
+    transform = transforms.Compose([
+        transforms.Resize((512, 512)),
+        transforms.ToImage(),
+        transforms.ToDtype(torch.float32, scale=True),
+    ])
     batch_size = BATCH_SIZES[int(log2(image_size / 4))]
-    # print(f'Batch Size: {batch_size}, Image Size: {image_size}')
+    print(f'Batch Size: {batch_size}, Image Size: {image_size}')
     dataset = datasets.ImageFolder(root=DATASET, transform=transform)
 
     # dataset.classes = [0, 1]
     # dataset.class_to_idx = {'train': 1, 'abstract': 0}
-    # dataset.samples = list(filter(lambda s: s[1] in [1], dataset.samples))
-    # 1: train, 0:abstract
+    # dataset.samples = list(filter(lambda s: s[1] in [0], dataset.samples))
     # print(len(dataset))
 
     # take subset of data such that batches are always whole.
@@ -64,25 +66,27 @@ def get_loader(image_size=256, device='cpu'):
         num_workers=6,
         batch_size=batch_size,
         shuffle=True,
-        prefetch_factor=2,
     )
     return loader, dataset
 
 
-def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scaler_g, z_dim=256, device='cpu',
+def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, scaler_g, z_dim=256, device='cpu',
             lamda_gp=10):
     dataloader, dataset = get_loader(image_size=4*2**step)
+    # dataloader, dataset = get_loader()
 
     loop = tqdm(dataloader, leave=True, unit="batch")
     for batch_idx, (real, _) in enumerate(loop):
         real = real.to(device)
+        real = ada(real)
 
         cur_batch_size = real.shape[0]
 
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
         # with torch.autocast(device_type=device, dtype=torch.float16):
-        fake = generator(noise, alpha, step)
+        fake1 = generator(noise, alpha, step)
+        fake = ada.forward(fake1)
 
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake, alpha, step)
@@ -101,6 +105,7 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
         gen_fake = critic(fake, alpha, step)
         loss_gen = -torch.mean(gen_fake)
 
+
         # opt_gen.zero_grad()
         # scaler_g.scale(loss_gen).backward(retain_graph=True)
         # scaler_g.step(opt_gen)
@@ -111,7 +116,12 @@ def trainer(generator, critic, step, alpha, opt_critic, opt_gen, scaler_c, scale
 
         alpha += cur_batch_size / ((PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))
         alpha = min(alpha, 1)
-        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(), loss_gen=loss_gen.item())
+
+        ada.update(critic_real)
+
+        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item(),
+                         loss_gen=loss_gen.item(), ada_p=ada.probability)
+        torch.cuda.empty_cache()
 
     return alpha
 
@@ -138,23 +148,30 @@ def tester():
     step = int(log2(START_TRAIN_AT_IMG_SIZE / 4))
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
-        print(f'Current image size: {4 * 2 ** step}')
-        print(f'Current Batch size: {BATCH_SIZES[int(log2((4*2**step) / 4))]}')
+        cur_img_size = 4 * 2 ** step
+        cur_batch_size = BATCH_SIZES[int(log2(cur_img_size / 4))]
+        print(f'Current image size: {cur_img_size}')
+        print(f'Current Batch size: {cur_batch_size}')
+        ada = AdaptiveAugmenter(batch_size=cur_batch_size,
+                                size=cur_img_size,
+                                p=0.50, channels_img=CHANNELS_IMG,
+                                device=DEVICE).to(DEVICE)
+
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
-            alpha = trainer(generator, critic, step, alpha, opt_critic, opt_gen,
+            alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
                             scaler_c, scaler_g, device=DEVICE, z_dim=Z_DIM)
         save_model(generator, critic, opt_gen, opt_critic, alpha,
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-                   step, identifier=f'step{step}_alpha{alpha}')
-        generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path="noADA_eg")
-        generate_examples(generator, 6, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path="noADA_eg")
+                   step, ada.probability, identifier=f'step{step}_alpha{alpha}')
+        generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE)
         step += 1
 
+    # noise = torch.randn(1, z_dim).to(device)
+    # img = gen(noise, alpha, steps)
     save_model(generator, critic, opt_gen, opt_critic, alpha,
                Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
-               step, identifier='final')
-
+               step, ada.probability, identifier='final')
 
 def continueTraining(identifier):
     generator = Generator(Z_DIM, W_DIM, IN_CHANNELS, img_channels=CHANNELS_IMG).to(DEVICE)
@@ -170,15 +187,18 @@ def continueTraining(identifier):
     scaler_g = torch.amp.GradScaler()
     scaler_c = torch.amp.GradScaler()
 
-    step, alpha, _ = load_model(generator, identifier, with_critic=True, crit=critic,
+    step, alpha, ada_prob = load_model(generator, identifier, with_critic=True, crit=critic,
                              with_optim=True, opt_gen=opt_gen, opt_crit=opt_critic)
+    # generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path='saved_examples/temp')
     step = step + 1
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
         print(f'Current image size: {4 * 2 ** step}')
+        ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
+                                size=4 * 2 ** step, channels_img=CHANNELS_IMG, device=DEVICE).to(DEVICE)
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
-            alpha = trainer(generator, critic, step, alpha, opt_critic, opt_gen,
+            alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
                             scaler_c, scaler_g, device=DEVICE, z_dim=Z_DIM)
         save_model(generator, critic, opt_gen, opt_critic, alpha,
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,

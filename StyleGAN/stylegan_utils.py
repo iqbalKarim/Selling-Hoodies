@@ -2,22 +2,19 @@ import torch
 import os
 from torchvision.utils import save_image
 
-def generate_examples(gen, steps, z_dim, n=100, device='cpu', uniq_path=None):
+def generate_examples(gen, steps, z_dim, n=100, device='cpu', uniq_path="saved_examples"):
     gen.eval()
     alpha = 1.0
     for i in range(n):
         with torch.no_grad():
             noise = torch.randn(1, z_dim).to(device)
             img = gen(noise, alpha, steps)
-            if uniq_path:
-                path = uniq_path
-            else:
-                path = f'saved_examples/step{steps}'
+            path = f'{uniq_path}/step{steps}'
             if not os.path.exists(path):
                 os.makedirs(path)
-            save_image(img*0.5+0.5, f"{path}/img_{steps}_{i}.png")
-            save_image(img, f"{path}/img2_{steps}_{i}.png")
+            save_image(img*0.5+0.5, f"{path}/img_{i}.png")
     gen.train()
+
 
 def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
     BATCH_SIZE, C, H, W = real.shape
@@ -41,9 +38,10 @@ def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
     gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
     return gradient_penalty
 
+
 def save_model(gen, crit, opt_gen, opt_crit, alpha,
                z_dim, w_dim, in_channels, img_channels,
-               step, ada_p, identifier='STYLEGAN'):
+               step, ada_p=0, identifier='STYLEGAN'):
     if not os.path.exists(f'models/{identifier}'):
         os.makedirs(f'models/{identifier}')
     torch.save({
@@ -54,6 +52,7 @@ def save_model(gen, crit, opt_gen, opt_crit, alpha,
         'ada_prob': ada_p,
         'parameters': (step, alpha, z_dim, w_dim, in_channels, img_channels),
     }, f'./models/{identifier}/trained.pth')
+
 
 def load_model(gen, identifier, with_critic=False, crit=None, with_optim=False, opt_gen=None, opt_crit=None):
     print('identifier', identifier)
@@ -68,6 +67,7 @@ def load_model(gen, identifier, with_critic=False, crit=None, with_optim=False, 
         opt_crit.load_state_dict(model['d_optim'])
 
     return step, alpha, ada_prob
+
 
 def load_all(identifier):
     return torch.load(f'./models/{identifier}/trained.pth')

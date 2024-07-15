@@ -46,8 +46,8 @@ def get_noise(batch_size):
 
 def save_everything(critic, gen, path_length_penalty, mapping_network, opt_critic, opt_gen, opt_mapping_network, epoch):
     identifier = f"epoch{epoch}"
-    if not os.path.exists(f'models/{identifier}'):
-        os.makedirs(f'models/{identifier}')
+    if not os.path.exists(f'models2/{identifier}'):
+        os.makedirs(f'models2/{identifier}')
     torch.save({
         'generator': gen.state_dict(),
         'discriminator': critic.state_dict(),
@@ -56,4 +56,4 @@ def save_everything(critic, gen, path_length_penalty, mapping_network, opt_criti
         'g_optim': opt_gen.state_dict(),
         'd_optim': opt_critic.state_dict(),
         'map_optim': opt_mapping_network.state_dict()
-    }, f'./models/{identifier}/trained.pth')
+    }, f'./models2/{identifier}/trained.pth')

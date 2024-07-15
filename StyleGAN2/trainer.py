@@ -20,9 +20,9 @@ def generate_examples(gen, epoch, n=50):
             w = get_w(1)
             noise = get_noise(1)
             img = gen(w, noise)
-            if not os.path.exists(f'saved_examples/epoch{epoch}'):
-                os.makedirs(f'saved_examples/epoch{epoch}')
-            save_image(img * 0.5 + 0.5, f"saved_examples/epoch{epoch}/img_{i}.png")
+            if not os.path.exists(f'saved_examples2/epoch{epoch}'):
+                os.makedirs(f'saved_examples2/epoch{epoch}')
+            save_image(img * 0.5 + 0.5, f"saved_examples2/epoch{epoch}/img_{i}.png")
 
     gen.train()
 
