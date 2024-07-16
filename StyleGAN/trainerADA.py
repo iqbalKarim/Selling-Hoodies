@@ -193,9 +193,14 @@ def continueTraining(identifier):
     step = step + 1
     for num_epochs in PROGRESSIVE_EPOCHS[step:]:
         alpha = 1e-5
-        print(f'Current image size: {4 * 2 ** step}')
-        ada = AdaptiveAugmenter(batch_size=BATCH_SIZES[int(log2((4 * 2 ** step) / 4))],
-                                size=4 * 2 ** step, channels_img=CHANNELS_IMG, device=DEVICE).to(DEVICE)
+        cur_img_size = 4 * 2 ** step
+        cur_batch_size = BATCH_SIZES[int(log2(cur_img_size / 4))]
+        print(f'Current image size: {cur_img_size}')
+        print(f'Current Batch size: {cur_batch_size}')
+        ada = AdaptiveAugmenter(batch_size=cur_batch_size,
+                                size=cur_img_size,
+                                p=0.50, channels_img=CHANNELS_IMG,
+                                device=DEVICE).to(DEVICE)
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
             alpha = trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen,
@@ -211,6 +216,6 @@ def continueTraining(identifier):
 
 
 if __name__ == '__main__':
-    tester()
-    # continueTraining('step4_alpha1')
+    # tester()
+    continueTraining('step3_alpha1')
 
