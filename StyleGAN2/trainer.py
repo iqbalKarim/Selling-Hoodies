@@ -34,7 +34,8 @@ def get_loader():
     transform = transforms.Compose(
         [
             transforms.Resize((2 ** LOG_RESOLUTION, 2 ** LOG_RESOLUTION)),
-            transforms.ToTensor(),
+            transforms.ToImage(),
+            transforms.ToDtype(torch.float32, scale=True),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.Normalize(
                 [0.5, 0.5, 0.5],
@@ -51,7 +52,8 @@ def get_loader():
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=6,
-        prefetch_factor=2
+        prefetch_factor=2,
+        pin_memory=True
     )
     return loader
 
@@ -112,6 +114,8 @@ def trainer(critic, gen, path_length_penalty, loader, opt_critic, opt_gen, opt_m
             if not torch.isnan(plp):
                 loss_gen = loss_gen + plp
 
+        torch.cuda.empty_cache()
+
         mapping_network.zero_grad()
         gen.zero_grad()
         loss_gen.backward()
@@ -121,9 +125,11 @@ def trainer(critic, gen, path_length_penalty, loader, opt_critic, opt_gen, opt_m
         loop.set_postfix(
             gp=gp.item(),
             loss_critic=loss_critic.item(),
-            loss_gen=loss_gen.item()
+            loss_gen=loss_gen.item(),
+            gpu_mem=(torch.cuda.memory_reserved(0)/1024/1024/1024)
         )
         loop.set_description(f"Epoch {epoch}")
+        torch.cuda.empty_cache()
 
 
 def tester():
@@ -136,6 +142,33 @@ def tester():
             generate_examples(gen, epoch)
             save_everything(critic, gen, path_length_penalty, mapping_network, opt_critic, opt_gen, opt_mapping_network, epoch)
 
+# 'generator': gen.state_dict(),
+# 'discriminator': critic.state_dict(),
+# 'mapping': mapping_network.state_dict(),
+# 'plp': path_length_penalty.state_dict(),
+# 'g_optim': opt_gen.state_dict(),
+# 'd_optim': opt_critic.state_dict(),
+# 'map_optim': opt_mapping_network.state_dict()
+def continue_training(identifier, curr_epoch):
+    print(f"Using {DEVICE}")
 
-tester()
+    model = torch.load(f'./models/{identifier}/trained.pth')
+    critic.load_state_dict(model["discriminator"])
+    gen.load_state_dict(model["generator"])
+    mapping_network.load_state_dict(model["mapping"])
+    path_length_penalty.load_state_dict(model["plp"])
+    opt_gen.load_state_dict(model["g_optim"])
+    opt_critic.load_state_dict(model["d_optim"])
+    opt_mapping_network.load_state_dict(model["map_optim"])
 
+    for epoch in range(curr_epoch + 1, EPOCHS):
+        trainer(
+            critic, gen, path_length_penalty, loader, opt_critic, opt_gen, opt_mapping_network, epoch
+        )
+        if epoch % 10 == 0:
+            generate_examples(gen, epoch)
+            save_everything(critic, gen, path_length_penalty, mapping_network, opt_critic, opt_gen, opt_mapping_network, epoch)
+
+if __name__ == "__main__":
+    # tester()
+    continue_training('epoch100', 100)

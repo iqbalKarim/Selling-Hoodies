@@ -27,8 +27,8 @@ def generate_examples(gen, steps, z_dim, n=100, device='cpu', uniq_path="saved_e
 
 if __name__ == "__main__":
     generator = Generator(Z_DIM, W_DIM, IN_CHANNELS, img_channels=CHANNELS_IMG).to(DEVICE)
-    saved = load_all("step4_alpha1")
+    saved = load_all("step6_alpha1")
     generator.load_state_dict(saved['generator'])
 
-    generate_examples(generator, 4, Z_DIM, n=50, device=DEVICE, uniq_path="testing")
+    generate_examples(generator, 6, Z_DIM, n=50, device=DEVICE, uniq_path="testing")
 

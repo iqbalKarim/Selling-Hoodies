@@ -17,14 +17,14 @@ START_TRAIN_AT_IMG_SIZE = 8 #The authors start from 8x8 images instead of 4x4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-3
 # BATCH_SIZES = [512, 64, 64, 64, 32, 16, 4]
-BATCH_SIZES = [512, 256, 128, 64, 32, 16, 4]
+BATCH_SIZES = [512, 256, 128, 64, 32, 16, 6]
 # BATCH_SIZES = [512, 16, 8, 4, 4, 16, 4]
 CHANNELS_IMG = 3
 Z_DIM = 256
 W_DIM = 256
 IN_CHANNELS = 256
 LAMBDA_GP = 10
-PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
+PROGRESSIVE_EPOCHS = [50] * len(BATCH_SIZES)
 factors = [1, 1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 print(f"Using: {DEVICE}")
@@ -32,17 +32,6 @@ def get_loader(image_size=512, device='cpu'):
     Image.MAX_IMAGE_PIXELS = None
     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-    # transform = transforms.Compose(
-    #     [
-    #         transforms.Resize((image_size, image_size)),
-    #         transforms.ToTensor(),
-    #         transforms.RandomHorizontalFlip(p=0.5),
-    #         transforms.Normalize(
-    #             [0.5 for _ in range(CHANNELS_IMG)],
-    #             [0.5 for _ in range(CHANNELS_IMG)],
-    #         )
-    #     ]
-    # )
     transform = transforms.Compose([
         transforms.Resize((512, 512)),
         transforms.ToImage(),
@@ -85,8 +74,8 @@ def trainer(generator, critic, ada, step, alpha, opt_critic, opt_gen, scaler_c, 
         noise = torch.randn(cur_batch_size, z_dim).to(device)
 
         # with torch.autocast(device_type=device, dtype=torch.float16):
-        fake1 = generator(noise, alpha, step)
-        fake = ada.forward(fake1)
+        fake = generator(noise, alpha, step)
+        fake = ada.forward(fake)
 
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake, alpha, step)
@@ -217,5 +206,5 @@ def continueTraining(identifier):
 
 if __name__ == '__main__':
     # tester()
-    continueTraining('step3_alpha1')
+    continueTraining('step5_alpha1')
 

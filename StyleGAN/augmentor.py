@@ -72,9 +72,9 @@ class AdaptiveAugmenter(nn.Module):
         # pipe.append(transforms.RandomResizedCrop(size=(256, 256), scale=(0.6, 1.4), ratio=(0.8, 1.2)))
         # images = transforms.functional.rotate(images, angle=90)
 
-        if self.rng.random() <= self.probability:
+        if self.rng.random() <= 0.7:
             pipe.append(transforms.RandomHorizontalFlip(p=1.0))
-        if self.rng.random() <= self.probability:
+        if self.rng.random() <= 0.7:
             pipe.append(transforms.RandomVerticalFlip(p=1.0))
         # if self.rng.random() <= self.probability:
         #     pipe.append(transforms.ColorJitter(brightness=(0.5, 1.5)))
@@ -84,8 +84,8 @@ class AdaptiveAugmenter(nn.Module):
         #     pipe.append(transforms.ColorJitter(contrast=(0.5, 1.5)))
         # if self.rng.random() <= self.probability:
         #     pipe.append(transforms.ColorJitter(saturation=(0.5, 1.5)))
-        if self.rng.random() <= self.probability:
-            pipe.append(transforms.RandomErasing(p=1, scale=(0.02, 0.25), ratio=(0.7, 1.3)))
+        if self.rng.random() <= 0.7:
+            pipe.append(transforms.RandomErasing(p=1, scale=(0.02, 0.1), ratio=(0.7, 1.3)))
 
         return pipe
 
@@ -96,3 +96,5 @@ class AdaptiveAugmenter(nn.Module):
         integration_steps = 1000
         self.probability = torch.clamp(self.probability + (accuracy_error * self.batch_size / integration_steps),
                                        min=0.05, max=1.0).item()
+
+
