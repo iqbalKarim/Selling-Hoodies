@@ -124,7 +124,6 @@ def tester():
                    Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG,
                    step, identifier=f'MNIST_step{step}_alpha{alpha}')
         generate_examples(generator, step, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path="MNIST")
-        generate_examples(generator, 6, z_dim=Z_DIM, n=50, device=DEVICE, uniq_path="MNIST")
         step += 1
 
     save_model(generator, critic, opt_gen, opt_critic, alpha,
