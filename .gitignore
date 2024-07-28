@@ -9,5 +9,9 @@ data/dataset
 data/mnist
 frameExtractor/frame*
 frameExtractor/vid.mp4
+frameExtractor/dataset
+StyleGAN/testing
+StyleGAN2/things
 data/nst
 data/out.txt
+data/letters/
