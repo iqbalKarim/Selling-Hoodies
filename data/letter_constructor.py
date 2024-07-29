@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 CHARACTER_COUNT = 26
-data = pd.read_csv('/vol/bitbucket/ik323/fyp/A_Z Handwritten Data.csv')
+data = pd.read_csv('D:/A_Z Handwritten Data.csv/A_Z Handwritten Data.csv')
 mapping = {str(i): chr(i + 65) for i in range(26)}
 
 def generate_dataset(folder, end, start=0):
@@ -24,5 +24,5 @@ def generate_dataset(folder, end, start=0):
             plt.imsave(f'{folder}/{mapping[str(i)]}_{j}.jpg', x, cmap='binary_r')
 
 
-generate_dataset('/vol/bitbucket/ik323/fyp/letters/train', 1100)
+generate_dataset('D:/letters/train', 1100)
 
