@@ -5,5 +5,5 @@
 export PATH=/vol/bitbucket/ik323/myvenv/bin/:$PATH
 source activate
 source /vol/cuda/12.2.0/setup.sh
-python trainerADA.py
+python graffitiTrainer.py
 uptime

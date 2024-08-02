@@ -171,26 +171,37 @@ class GeneratorBlock(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, log_resolution, W_DIM, n_features=32, max_features=256):
+    def __init__(self, log_resolution, W_DIM, n_features=8, max_features=256):
         super().__init__()
         features = [min(max_features, n_features * (2 ** i)) for i in range(log_resolution - 2, -1, -1)]
         self.n_blocks = len(features)
-        self.initial_constant = nn.Parameter(torch.randn((1, features[0], 4, 4)))
 
-        self.style_block = StyleBlock(W_DIM, features[0], features[0])
-        self.to_rgb = ToRGB(W_DIM, features[0])
+        # self.initial_constant = nn.Parameter(torch.randn((1, features[0], 4, 4)))
+        # self.style_block = StyleBlock(W_DIM, features[0], features[0])
+        # self.to_rgb = ToRGB(W_DIM, features[0])
+
+        self.initial_constant_layers = []
+        self.style_block_layers = nn.ModuleList([])
+        self.to_rgb_layers = nn.ModuleList([])
+
+        for i in range(0, self.n_blocks - 1):
+            init_features = features[i]
+            self.initial_constant_layers.append(nn.Parameter(torch.randn((1, init_features, 4, 4))))
+            self.style_block_layers.append(StyleBlock(W_DIM, features[0], features[0]))
+            self.to_rgb_layers.append(ToRGB(W_DIM, features[0]))
 
         blocks = [GeneratorBlock(W_DIM, features[i - 1], features[i]) for i in range(1, self.n_blocks)]
         self.blocks = nn.ModuleList(blocks)
 
-    def forward(self, w, input_noise):
+    def forward(self, w, input_noise, device, step):
         batch_size = w.shape[1]
-        x = self.initial_constant.expand(batch_size, -1, -1, -1)
-        print(x.shape, w[0].shape, input_noise[0][1].shape)
-        x = self.style_block(x, w[0], input_noise[0][1])
-        rgb = self.to_rgb(x, w[0])
 
-        for i in range(1, self.n_blocks):
+        x = self.initial_constant_layers[step-1].expand(batch_size, -1, -1, -1).half().to(device)
+        print('x, w[0], input_noise[0][1]', x.shape, w[0].shape, input_noise[0][1].shape)
+        x = self.style_block_layers[step-1](x, w[0], input_noise[0][1])
+        rgb = self.to_rgb_layers[step-1](x, w[0])
+
+        for i in range(step, self.n_blocks):
             x = F.interpolate(x, scale_factor=2, mode="bilinear")
             x, rgb_new = self.blocks[i - 1](x, w[i], input_noise[i])
             rgb = F.interpolate(rgb, scale_factor=2, mode="bilinear") + rgb_new
@@ -226,7 +237,7 @@ class DiscriminatorBlock(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, log_resolution, n_features=64, max_features = 256):
+    def __init__(self, log_resolution, n_features=8, max_features=256):
         super().__init__()
         features = [min(max_features, n_features * (2 ** i)) for i in range(log_resolution - 1)]
         self.from_rgb = nn.Sequential(
@@ -234,12 +245,24 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, True)
         )
         n_blocks = len(features) - 1
-        blocks = [DiscriminatorBlock(features[i], features[i + 1]) for i in range (n_blocks)]
-        self.blocks = nn.Sequential(*blocks)
+        self.n_blocks = n_blocks
+        # blocks = [DiscriminatorBlock(features[i], features[i + 1]) for i in range(n_blocks)]
+        # self.blocks = nn.Sequential(*blocks)
+        self.blocks = nn.ModuleList([])
+        for i in range(n_blocks):
+            self.blocks.append(DiscriminatorBlock(features[i], features[i + 1]))
 
-        final_features = features[-1] + 1
-        self.conv = EqualizedConv2d(final_features, final_features, 3)
-        self.final = EqualizedLinear(2 * 2 * final_features, 1)
+        self.conv_layers = nn.ModuleList([])
+        self.final_layers = nn.ModuleList([])
+        for i in range(1, n_blocks + 1):
+            final_features = features[i] + 1
+            # print('i: ', final_features)
+            self.conv_layers.append(EqualizedConv2d(final_features, final_features, 3))
+            self.final_layers.append(EqualizedLinear(2 * 2 * final_features, 1))
+
+        # final_features = features[-1] + 1
+        # self.conv = EqualizedConv2d(final_features, final_features, 3)
+        # self.final = EqualizedLinear(2 * 2 * final_features, 1)
 
     def minibatch_std(self, x):
         batch_statistics = (
@@ -247,12 +270,13 @@ class Discriminator(nn.Module):
         )
         return torch.cat([x, batch_statistics], dim=1)
 
-    def forward(self, x):
+    def forward(self, x, step):
         x = self.from_rgb(x)
-        x = self.blocks(x)
+        for i in range(step):
+            x = self.blocks[i](x)
 
         x = self.minibatch_std(x)
-        x = self.conv(x)
+        x = self.conv_layers[step - 1](x)
         x = x.reshape(x.shape[0], -1)
-        return self.final(x)
+        return self.final_layers[step - 1](x)
 

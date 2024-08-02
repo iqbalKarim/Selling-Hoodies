@@ -3,7 +3,9 @@ from PIL import Image
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("/vol/bitbucket/ik323/fyp/dataset/", topdown=False):
+    print('Converting...')
+    for root, dirs, files in os.walk("/vol/bitbucket/ik323/fyp/images/", topdown=False):
+        print('Directories:')
         for name in files:
             input_path = os.path.join(root, name)
             image = Image.open(input_path)

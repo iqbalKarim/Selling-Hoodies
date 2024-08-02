@@ -57,9 +57,10 @@ def get_loader():
     )
     return loader
 
-
+print('Getting loader...')
 loader = get_loader()
 
+print('Constructing models...')
 gen = Generator(LOG_RESOLUTION, W_DIM).to(DEVICE)
 critic = Discriminator(LOG_RESOLUTION).to(DEVICE)
 mapping_network = MappingNetwork(Z_DIM, W_DIM).to(DEVICE)
@@ -90,6 +91,8 @@ def trainer(critic, gen, path_length_penalty, loader, opt_critic, opt_gen, opt_m
 
         w = get_w(cur_batch_size)
         noise = get_noise(cur_batch_size)
+        print('these', len(w), w.shape)
+        print(w[0].shape, noise[0][1].shape)
         with torch.cuda.amp.autocast():
             fake = gen(w, noise)
             critic_fake = critic(fake.detach())
@@ -152,7 +155,7 @@ def tester():
 def continue_training(identifier, curr_epoch):
     print(f"Using {DEVICE}")
 
-    model = torch.load(f'./models/{identifier}/trained.pth')
+    model = torch.load(f'./models2/{identifier}/trained.pth')
     critic.load_state_dict(model["discriminator"])
     gen.load_state_dict(model["generator"])
     mapping_network.load_state_dict(model["mapping"])
@@ -170,5 +173,6 @@ def continue_training(identifier, curr_epoch):
             save_everything(critic, gen, path_length_penalty, mapping_network, opt_critic, opt_gen, opt_mapping_network, epoch)
 
 if __name__ == "__main__":
-    # tester()
-    continue_training('epoch100', 100)
+    print('training...')
+    tester()
+    # continue_training('epoch110', 110)
