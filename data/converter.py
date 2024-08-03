@@ -1,11 +1,10 @@
 import os
 from PIL import Image
 
+data_path = "D:/images"
 
 if __name__ == "__main__":
-    print('Converting...')
-    for root, dirs, files in os.walk("/vol/bitbucket/ik323/fyp/images/", topdown=False):
-        print('Directories:')
+    for root, dirs, files in os.walk(data_path, topdown=False):
         for name in files:
             input_path = os.path.join(root, name)
             image = Image.open(input_path)
