@@ -187,8 +187,8 @@ class Generator(nn.Module):
         for i in range(0, self.n_blocks - 1):
             init_features = features[i]
             self.initial_constant_layers.append(nn.Parameter(torch.randn((1, init_features, 4, 4))))
-            self.style_block_layers.append(StyleBlock(W_DIM, features[0], features[0]))
-            self.to_rgb_layers.append(ToRGB(W_DIM, features[0]))
+            self.style_block_layers.append(StyleBlock(W_DIM, init_features, init_features))
+            self.to_rgb_layers.append(ToRGB(W_DIM, init_features))
 
         blocks = [GeneratorBlock(W_DIM, features[i - 1], features[i]) for i in range(1, self.n_blocks)]
         self.blocks = nn.ModuleList(blocks)
@@ -197,14 +197,15 @@ class Generator(nn.Module):
         batch_size = w.shape[1]
 
         x = self.initial_constant_layers[step-1].expand(batch_size, -1, -1, -1).half().to(device)
-        print('x, w[0], input_noise[0][1]', x.shape, w[0].shape, input_noise[0][1].shape)
         x = self.style_block_layers[step-1](x, w[0], input_noise[0][1])
         rgb = self.to_rgb_layers[step-1](x, w[0])
 
+        control = 1
         for i in range(step, self.n_blocks):
             x = F.interpolate(x, scale_factor=2, mode="bilinear")
-            x, rgb_new = self.blocks[i - 1](x, w[i], input_noise[i])
+            x, rgb_new = self.blocks[i - 1](x, w[control], input_noise[control])
             rgb = F.interpolate(rgb, scale_factor=2, mode="bilinear") + rgb_new
+            control += 1
 
         return torch.tanh(rgb)
 

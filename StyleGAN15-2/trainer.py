@@ -11,28 +11,33 @@ from classes import Generator, Discriminator, MappingNetwork, PathLengthPenalty
 import os
 from torchvision.utils import save_image
 import numpy as np
+from math import log2
 
 
-def generate_examples(generator, epoch, step, n=50):
+def generate_examples(generator, step, n=50):
     generator.eval()
     alpha = 1.0
     for i in range(n):
         with torch.no_grad():
-            w = get_w(1)
-            noise = get_noise(1)
-            img = generator(w, noise, step)
-            if not os.path.exists(f'saved_examples/epoch{epoch}'):
-                os.makedirs(f'saved_examples/epoch{epoch}')
-            save_image(img * 0.5 + 0.5, f"saved_examples/epoch{epoch}/img_{i}.png")
+            w = get_w(1, LOG_RESOLUTION - step + 1)
+            noise = get_noise(1, LOG_RESOLUTION - step + 1)
+            with torch.cuda.amp.autocast():
+                img = generator(w, noise, DEVICE, step)
+            if not os.path.exists(f'saved_examples/step{step}'):
+                os.makedirs(f'saved_examples/step{step}')
+            save_image(img * 0.5 + 0.5, f"saved_examples/step{step}/img_{i}.png")
 
     generator.train()
 
 
 def get_loader(log_resolution, batch_size, step):
-    print('Loading Dataset...')
+    print('Loading Dataset...', end="\t\t")
     size = min(256, 2 ** (step + 2))
     # size = 2 ** 3 + step
-    print('Image size: ', (size, size))
+    print('Image size:', (size, size), end="\t")
+    cur_b_size = BATCH_SIZES[int(log2(size) - 3)]
+    print("Batch size:", cur_b_size)
+
     transform = transforms.Compose(
         [
             # transforms.Resize((2 ** log_resolution, 2 ** log_resolution)),
@@ -51,10 +56,13 @@ def get_loader(log_resolution, batch_size, step):
     dataset_subset = torch.utils.data.Subset(dataset, np.random.choice(len(dataset),
                                                                        ((len(dataset) // batch_size) * batch_size),
                                                                        replace=False))
+    # dataset_subset = torch.utils.data.Subset(dataset, np.random.choice(len(dataset),
+    #                                                                    (12 * cur_b_size),
+    #                                                                    replace=False))
     print('Prepping loader...')
     loader = DataLoader(
         dataset_subset,
-        batch_size=batch_size,
+        batch_size=cur_b_size,
         shuffle=True,
         num_workers=6,
         prefetch_factor=2,
@@ -133,7 +141,7 @@ def tester():
             trainer(critic, gen, path_length_penalty, loader, opt_critic,
                     opt_gen, opt_mapping_network, epoch, step)
             # if epoch % 10 == 0:
-        generate_examples(gen, epoch)
+        generate_examples(gen, step, n=10)
         save_everything(critic, gen, path_length_penalty, mapping_network,
                         opt_critic, opt_gen, opt_mapping_network, epoch, step)
 
