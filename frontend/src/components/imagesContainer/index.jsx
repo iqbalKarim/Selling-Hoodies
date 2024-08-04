@@ -9,18 +9,18 @@ function ImageContainer({ images, loading }) {
     setSelectedImages((prev) => [...prev, image])
   }
 
-  if (!images || images.length == 0) {
-    return <></>
-  }
+  // if (!images || images.length == 0) {
+  //   return <></>
+  // }
   return (
-    <div style={{ margin: "auto", width: "fit-content", position: "relative" }}>
+    <div style={{width: "fit-content", position: "relative" }}>
       {loading && (
         <div className={styles.loaderContainer}>
           <div className={styles.loader} />
         </div>
       )}
       <div className={styles.imageContainer}>
-        {images.map((image, index) => (
+        {images?.map((image, index) => (
           <img
             className={styles.image}
             key={index}

@@ -1,0 +1,51 @@
+.gridPoint{
+    /* background-color: azure; */
+    width: 15px;
+    height: 15px;
+    border: 1px solid #555;
+    margin: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.active{
+    background-color: #555;
+}
+.inactive{
+    background-color: #000;
+}
+
+.active:hover{
+    background-color: #000;
+}
+
+.inactive:hover{
+    background-color: #555;
+}
+
+.gridParent{
+    width: 85px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.count_input{
+    position: relative;
+    margin-top: 20px;
+}
+.count_input > label{
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 15px;
+    background-color: #252525;
+}
+.count_input > input{
+    border: none;
+    outline: none;
+    background-color: transparent;
+    border: 3px solid #555; 
+    border-radius: 10px;
+    padding: 10px 5px 5px;
+    color: whitesmoke;
+}
+

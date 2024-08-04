@@ -57,6 +57,7 @@ function MovableImage({ image, imageIndex }) {
       </div>
 
       <Moveable
+        className={styles.movable_custom}
         target={`#${uniq}`}
         draggable={true}
         scalable={true}

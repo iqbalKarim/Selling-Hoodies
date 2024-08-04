@@ -16,3 +16,14 @@ data/nst
 data/out.txt
 data/letters/
 *.pth
+StyleGAN/EMNIST
+StyleGAN/graffiti
+StyleGAN15-2/saved_examples
+StyleGAN15-2/models
+StyleGAN2/saved_examples
+StyleGAN2/saved_examples2
+StyleGAN2/models
+StyleGAN2/models2
+slurm*
+.ipynb_checkpoints
+output.txt
