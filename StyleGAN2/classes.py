@@ -186,7 +186,6 @@ class Generator(nn.Module):
     def forward(self, w, input_noise):
         batch_size = w.shape[1]
         x = self.initial_constant.expand(batch_size, -1, -1, -1)
-        print(x.shape, w[0].shape, input_noise[0][1].shape)
         x = self.style_block(x, w[0], input_noise[0][1])
         rgb = self.to_rgb(x, w[0])
 

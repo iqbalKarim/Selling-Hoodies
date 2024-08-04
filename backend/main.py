@@ -16,17 +16,29 @@ CORS(app, origins="*")
 
 @app.route('/', methods=["GET"])
 def testpost():
-    # input_json = request.get_json(force=True)
-    imgs = generate_examples(gen, 6, n=5)
+    normalize = request.args.get("normalize")
+    imgs = generate_examples(gen, 6, n=5, normalize=normalize)
     pil_imgs_64 = serve_pil_image64(imgs)
     dictToReturn = {'text_return': 'text', 'num': len(pil_imgs_64), 'img': pil_imgs_64}
-    # dictToReturn = {'text_return': 'text', 'num': len(imgs)}
-    print('Sending 5 images')
     return jsonify(dictToReturn)
 
 @app.route("/emnist", methods=["GET"])
 def emnistGet():
     imgs = generate_grid(emnistGen, 3, cols=5)
+    pil_imgs_64 = serve_pil_image64(imgs)
+    dict_return = {'count': len(pil_imgs_64), 'img': pil_imgs_64}
+    return jsonify(dict_return)
+
+@app.route("/graffiti", methods=["GET"])
+def graffitiGet():
+    imgs = generate_examples(graffitiGen, steps=6, n=5)
+    pil_imgs_64 = serve_pil_image64(imgs)
+    dict_return = {'count': len(pil_imgs_64), 'img': pil_imgs_64}
+    return jsonify(dict_return)
+
+@app.route("/mnist", methods=["GET"])
+def mnistGet():
+    imgs = generate_grid(mnistGen, 3, n=5)
     pil_imgs_64 = serve_pil_image64(imgs)
     dict_return = {'count': len(pil_imgs_64), 'img': pil_imgs_64}
     return jsonify(dict_return)
@@ -44,13 +56,18 @@ def serve_pil_image64(pil_img):
 
     return imgs
     # return img_str
-    # return jsonify({'status': True, 'image': img_str})
 
 
 if __name__ == "__main__":
     global gen
-    gen = load_generator()
     global emnistGen
+    global graffitiGen
+    global mnistGen
+    global metFacesGen
+
+    gen = load_generator()
     emnistGen = load_emnist_generator()
+    graffitiGen = load_graffiti_generator()
+    mnistGen = load_mnist_generator()
 
     app.run(debug=True)

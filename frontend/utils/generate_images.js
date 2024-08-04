@@ -1,6 +1,6 @@
 const base = "http://127.0.0.1:5000/"
 
-async function get_request(url="") {
+async function get_request(url = "") {
   let headers = new Headers()
   headers.append("Content-Type", "application/json")
   headers.append("Accept", "application/json")
@@ -21,9 +21,17 @@ async function get_request(url="") {
 }
 
 export function get_image() {
-  return get_request()
+  return get_request("?normalize=False")
 }
 
-export function get_emnist_images(){
+export function get_emnist_images() {
   return get_request("emnist")
+}
+
+export function get_mnist_images() {
+  return get_request("mnist")
+}
+
+export function get_graffiti_images() {
+  return get_request("graffiti")
 }

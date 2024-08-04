@@ -30,7 +30,7 @@ def generate_examples(generator, step, n=50):
     generator.train()
 
 
-def get_loader(log_resolution, batch_size, step):
+def get_loader(step):
     print('Loading Dataset...', end="\t\t")
     size = min(256, 2 ** (step + 2))
     # size = 2 ** 3 + step
@@ -51,10 +51,10 @@ def get_loader(log_resolution, batch_size, step):
             ),
         ]
     )
-    dataset = datasets.ImageFolder(root=DATASET, transform=transform, )
+    dataset = datasets.ImageFolder(root=DATASET, transform=transform)
     # strict complete batch
     dataset_subset = torch.utils.data.Subset(dataset, np.random.choice(len(dataset),
-                                                                       ((len(dataset) // batch_size) * batch_size),
+                                                                       ((len(dataset) // cur_b_size) * cur_b_size),
                                                                        replace=False))
     # dataset_subset = torch.utils.data.Subset(dataset, np.random.choice(len(dataset),
     #                                                                    (12 * cur_b_size),
@@ -136,7 +136,7 @@ def trainer(critic, gen, path_length_penalty, loader, opt_critic,
 def tester():
     # for step in range(1,2):
     for step in range(gen.n_blocks - 1, 0, -1):
-        loader, _ = get_loader(step, BATCH_SIZE, gen.n_blocks - step)
+        loader, _ = get_loader(gen.n_blocks - step)
         for epoch in range(STEP_EPOCHS):
             trainer(critic, gen, path_length_penalty, loader, opt_critic,
                     opt_gen, opt_mapping_network, epoch, step)

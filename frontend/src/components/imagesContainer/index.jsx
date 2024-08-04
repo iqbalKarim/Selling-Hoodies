@@ -6,14 +6,11 @@ function ImageContainer({ images, loading }) {
   const { setSelectedImages } = useContext(SelectedImagesContext)
 
   function onImageClickHandler(image) {
-    setSelectedImages((prev) => [...prev, image])
+    setSelectedImages((prev) => [...prev, { image, styleObj: { borderRadius: "5px", width: "100px", height: "100px" } }])
   }
 
-  // if (!images || images.length == 0) {
-  //   return <></>
-  // }
   return (
-    <div style={{width: "fit-content", position: "relative" }}>
+    <div style={{ width: "fit-content", position: "relative" }}>
       {loading && (
         <div className={styles.loaderContainer}>
           <div className={styles.loader} />

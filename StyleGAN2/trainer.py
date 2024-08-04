@@ -122,7 +122,7 @@ def tester():
         trainer(
             critic, gen, path_length_penalty, loader, opt_critic, opt_gen, opt_mapping_network, epoch
         )
-        if epoch % 10 == 0:
+        if epoch % 10 == 0 and epoch != 0:
             generate_examples(gen, epoch)
             save_everything(critic, gen, path_length_penalty, mapping_network, opt_critic, opt_gen, opt_mapping_network, epoch)
 
@@ -168,5 +168,5 @@ if __name__ == "__main__":
     gen.train()
     critic.train()
     mapping_network.train()
-    # tester()
-    continue_training('epoch100', 100)
+    tester()
+    # continue_training('epoch100', 100)

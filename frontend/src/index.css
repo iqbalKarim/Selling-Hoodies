@@ -20,3 +20,27 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+.moveable-line {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+}
+.moveable-direction  {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+  content: none !important;
+}
+.moveable-rotation{
+  width: 0px !important;
+  background: transparent !important;
+  height: 0px !important;
+  display: none !important;
+}
+.moveable-control{
+  background: transparent !important;
+  color: transparent;
+  border: 5px solid transparent !important;
+  display: none;
+}
