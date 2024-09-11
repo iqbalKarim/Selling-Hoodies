@@ -1,0 +1,18 @@
+.styleImage{
+    transition: 0.3s;
+    z-index: 0;
+}
+.styleImage:hover{
+    transform: scale(1.3);
+    box-shadow: rgba(240, 46, 170, 0.5) 0 0 0px 3px, rgba(240, 46, 170, 0.2) 0 0 0px 6px, rgba(240, 46, 170, 0.1) 0 0 0px 9px;
+    z-index: 1;
+}
+
+.nstResult{
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.nstResult:hover{
+    transform: scale(1.1);
+    box-shadow: rgba(240, 46, 170, 0.5) 0 0 0px 3px, rgba(240, 46, 170, 0.2) 0 0 0px 6px, rgba(240, 46, 170, 0.1) 0 0 0px 9px;
+}

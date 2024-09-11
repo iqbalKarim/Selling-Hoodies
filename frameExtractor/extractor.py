@@ -1,6 +1,3 @@
-import sys
-import argparse
-
 import os
 import cv2
 
@@ -29,4 +26,4 @@ vids = ['JujutsuKaisen-S02E02','JujutsuKaisen-S02E03','JujutsuKaisen-S02E04','Ju
 # extractImages('D:/anime/jjk/JujutsuKaisen-s2/JujutsuKaisen-S02E01.mkv', './dataset/jjk-s2e01/')
 if __name__ == "__main__":
     for vid in vids:
-        extractImages(f'D:/anime/jjk/JujutsuKaisen-s2/{vid}.mkv', f'./dataset/{vid}/')
+        extractImages(f'./gooboy.mp4', f'./gameboy/data/')

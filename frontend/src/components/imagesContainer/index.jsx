@@ -3,10 +3,13 @@ import styles from "./imagesContainer.module.css"
 import { SelectedImagesContext } from "../../context/selectedImagesContext"
 
 function ImageContainer({ images, loading }) {
-  const { setSelectedImages } = useContext(SelectedImagesContext)
+  const { setSelectedImages, setActiveImage } = useContext(SelectedImagesContext)
 
+  // function onImageClickHandler(image) {
+  //   setSelectedImages((prev) => [...prev, { image, styleObj: { borderRadius: "5px", width: "100px", height: "100px" } }])
+  // }
   function onImageClickHandler(image) {
-    setSelectedImages((prev) => [...prev, { image, styleObj: { borderRadius: "5px", width: "100px", height: "100px" } }])
+    setActiveImage(image)
   }
 
   return (

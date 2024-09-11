@@ -1,5 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  font-family: 'Gochi Hand', Arial, serif;
+  --nice-font: 'Gochi Hand', Arial, serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -21,24 +25,24 @@ body {
   min-height: 100vh;
 }
 
-.moveable-line {
+.iqbalImage .moveable-line {
   width: 0px !important;
   height: 0px !important;
   display: none !important;
 }
-.moveable-direction  {
+.iqbalImage .moveable-direction  {
   width: 0px !important;
   height: 0px !important;
   background: transparent !important;
   content: none !important;
 }
-.moveable-rotation{
+.iqbalImage .moveable-rotation{
   width: 0px !important;
   background: transparent !important;
   height: 0px !important;
   display: none !important;
 }
-.moveable-control{
+.iqbalImage .moveable-control{
   background: transparent !important;
   color: transparent;
   border: 5px solid transparent !important;

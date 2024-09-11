@@ -8,9 +8,16 @@ import matplotlib.pyplot as plt
 
 import torchvision.transforms as transforms
 from torchvision.models import vgg19, VGG19_Weights
-from classes import *
+from NST.classes import *
 
 import copy
+
+cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
+cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
+
+# desired depth layers to compute style/content losses :
+content_layers_default = ['conv_4']
+style_layers_default = ['conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5']
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
@@ -31,15 +38,8 @@ def image_loader(image_name):
     return image.to(device, torch.float)
 
 
-style_img = image_loader("../data/nst/picasso.jpg")
-content_img = image_loader("../data/nst/sample2.jpg")
-print(imsize, style_img.size(), content_img.size())
-assert style_img.size() == content_img.size(), \
-    "we need to import style and content images of the same size"
-
 unloader = transforms.ToPILImage()  # reconvert into PIL image
 
-plt.ion()
 
 def imshow(tensor, title=None):
     image = tensor.cpu().clone()  # we clone the tensor to not do changes on it
@@ -49,22 +49,6 @@ def imshow(tensor, title=None):
     if title is not None:
         plt.title(title)
     plt.pause(0.001) # pause a bit so that plots are updated
-
-
-plt.figure()
-imshow(style_img, title='Style Image')
-
-plt.figure()
-imshow(content_img, title='Content Image')
-
-cnn = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
-
-cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
-cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
-
-# desired depth layers to compute style/content losses :
-content_layers_default = ['conv_4']
-style_layers_default = ['conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5']
 
 def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
                                style_img, content_img,
@@ -125,18 +109,6 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
 
     return model, style_losses, content_losses
 
-
-input_img = content_img.clone()
-# if you want to use white noise by using the following code:
-#
-# .. code-block:: python
-#
-# input_img = torch.randn(content_img.data.size())
-
-# add the original input image to the figure:
-plt.figure()
-imshow(input_img, title='Input Image')
-
 def get_input_optimizer(input_img):
     # this line to show that input is a parameter that requires a gradient
     optimizer = optim.LBFGS([input_img])
@@ -150,6 +122,8 @@ def run_style_transfer(cnn, normalization_mean, normalization_std,
     model, style_losses, content_losses = get_style_model_and_losses(cnn,normalization_mean,
                                                                      normalization_std, style_img, content_img)
 
+    unloader = transforms.ToPILImage()
+
     # We want to optimize the input and not the model parameters so we
     # update all the requires_grad fields accordingly
     input_img.requires_grad_(True)
@@ -160,6 +134,8 @@ def run_style_transfer(cnn, normalization_mean, normalization_std,
 
     optimizer = get_input_optimizer(input_img)
 
+    content_losses_list = []
+    style_losses_list = []
     print('Optimizing..')
     run = [0]
     while run[0] <= num_steps:
@@ -185,8 +161,18 @@ def run_style_transfer(cnn, normalization_mean, normalization_std,
             loss = style_score + content_score
             loss.backward()
 
+            #
+            # style_losses_list.append(style_score.item())
+            # content_losses_list.append(content_score.item())
+            # print(style_losses_list, content_losses_list)
+
             run[0] += 1
             if run[0] % 50 == 0:
+                image_shower = input_img.clone()  # we clone the tensor to not do changes on it
+                image_shower = image_shower.cpu().squeeze(0)  # remove the fake batch dimension
+                image_shower = unloader(image_shower)
+                image_shower.save(f"{run[0]}.png")
+
                 print("run {}:".format(run))
                 print('Style Loss : {:4f} Content Loss: {:4f}'.format(
                     style_score.item(), content_score.item()))
@@ -203,12 +189,41 @@ def run_style_transfer(cnn, normalization_mean, normalization_std,
     return input_img
 
 
-output = run_style_transfer(cnn, cnn_normalization_mean, cnn_normalization_std,
-                            content_img, style_img, input_img, num_steps=300)
 
-plt.figure()
-imshow(output, title='Output Image')
+if __name__ == "__main__":
+    style_img = image_loader("../data/nst/picasso.jpg")
+    content_img = image_loader("../data/nst/sample2.jpg")
+    print(imsize, style_img.size(), content_img.size())
+    assert style_img.size() == content_img.size(), \
+        "we need to import style and content images of the same size"
 
-# sphinx_gallery_thumbnail_number = 4
-plt.ioff()
-plt.show()
+    plt.ion()
+
+    plt.figure()
+    imshow(style_img, title='Style Image')
+
+    plt.figure()
+    imshow(content_img, title='Content Image')
+
+    cnn = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
+
+    input_img = content_img.clone()
+    # if you want to use white noise by using the following code:
+    #
+    # .. code-block:: python
+    #
+    # input_img = torch.randn(content_img.data.size())
+
+    # add the original input image to the figure:
+    plt.figure()
+    imshow(input_img, title='Input Image')
+
+    output = run_style_transfer(cnn, cnn_normalization_mean, cnn_normalization_std,
+                                content_img, style_img, input_img, num_steps=300)
+
+    plt.figure()
+    imshow(output, title='Output Image')
+
+    # sphinx_gallery_thumbnail_number = 4
+    plt.ioff()
+    plt.show()

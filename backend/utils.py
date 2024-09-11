@@ -1,12 +1,14 @@
 import torch
 from StyleGAN.classes import Generator
 from torchvision.utils import make_grid
+from stgan2helper import load_pickle, generate_images
 
 CHANNELS_IMG = 3
 Z_DIM = 256
 IN_CHANNELS = 256
 W_DIM = 256
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def generate_examples(gen, steps, n=5, normalize="True"):
     alpha = 1.0
@@ -17,7 +19,7 @@ def generate_examples(gen, steps, n=5, normalize="True"):
     #         imgs.append(gen(noise, alpha, steps))
     with torch.no_grad():
         noise = torch.randn(n, Z_DIM)
-        imgs = gen(noise, alpha, steps)
+        imgs = gen(noise.to(device), alpha, steps)
         if normalize == "True":
             print('normalize')
             imgs = (imgs * 0.5) + 0.5
@@ -30,7 +32,7 @@ def generate_grid(gen, step, cols=3, n=3):
     for i in range(n):
         with torch.no_grad():
             noise = torch.randn(cols * cols, Z_DIM)
-            samples = gen(noise, 1, step)
+            samples = gen(noise.to(device), 1, step)
             grid = make_grid((samples*0.5) + 0.5, cols)
         imgs.append(grid)
 
@@ -71,3 +73,10 @@ def load_graffiti_generator():
 
 def generate_styleGAN1_examples(gen):
     return 'Gen these'
+
+def load_met():
+    return load_pickle()
+
+def generate_met(G, n = 5):
+    generate_images(G, outdir='out', truncation_psi=0.7, n=int(n))
+

@@ -28,3 +28,11 @@ slurm*
 .ipynb_checkpoints
 output.txt
 dataset2/
+datasetEvaluation/
+50.png
+100.png
+temp.py
+*.pkl
+frameExtractor/gameboy
+gooboy.mp4
+download.png
