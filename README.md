@@ -25,11 +25,3 @@ nice nohup ./RUNME </dev/null >&/dev/null &
 ```
 Configure dataset classes and path from `donwloader.py` to download specific datasets from OMNIART.
 
-
-### TODO:
-<ul>
-  <li>Optimize processes using the (towardsDataScience) resources. Profiler, batching, autocast etc</li>
-  <li>Increase `workers` for dataloader</li>
-  <li>Varying batch size training. (experimentation)</li>
-  <li>Augmentation for progressive training</li>
-</ul>
